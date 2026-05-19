@@ -26,4 +26,4 @@ flutter:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/icon/sew.png"
+  image_path: "assets/icon/sew.jpeg"
