@@ -1,5 +1,5 @@
 name: sewa_mitra
-description: Home Services App - Reliable Services Right at Your Doorstep
+description: SewaMitra - Trusted Home Services
 
 publish_to: 'none'
 
@@ -22,6 +22,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icon/sew.jpeg
 
 flutter_icons:
   android: true
