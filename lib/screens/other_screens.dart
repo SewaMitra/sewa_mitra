@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../theme/app_theme.dart';
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -198,6 +200,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String _name = 'Ram Shrestha';
   String _email = 'ram@example.com';
+  String? _imagePath;
 
   void _navigateTo(Widget page) async {
     final result = await Navigator.push<Map<String, String>>(
@@ -208,6 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _name = result['name'] ?? _name;
         _email = result['email'] ?? _email;
+        if (result['imagePath'] != null) _imagePath = result['imagePath'];
       });
     }
   }
@@ -249,15 +253,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               const SizedBox(height: 20),
               // Avatar
-              Container(
-                width: 90,
-                height: 90,
-                decoration: const BoxDecoration(
-                  color: AppTheme.lightOrange,
-                  shape: BoxShape.circle,
+              GestureDetector(
+                onTap: () => _navigateTo(
+                  EditProfileScreen(
+                      name: _name, email: _email, imagePath: _imagePath),
                 ),
-                child: const Icon(Icons.person_rounded,
-                    color: AppTheme.primaryOrange, size: 50),
+                child: Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    color: AppTheme.lightOrange,
+                    shape: BoxShape.circle,
+                    image: _imagePath != null
+                        ? DecorationImage(
+                            image: FileImage(File(_imagePath!)),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: _imagePath == null
+                      ? const Icon(Icons.person_rounded,
+                          color: AppTheme.primaryOrange, size: 50)
+                      : null,
+                ),
               ),
               const SizedBox(height: 12),
               Text(_name,
@@ -275,7 +293,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: Icons.edit_rounded,
                 label: 'Edit Profile',
                 onTap: () => _navigateTo(
-                  EditProfileScreen(name: _name, email: _email),
+                  EditProfileScreen(
+                      name: _name, email: _email, imagePath: _imagePath),
                 ),
               ),
               _ProfileTile(
@@ -362,7 +381,12 @@ class _ProfileTile extends StatelessWidget {
 class EditProfileScreen extends StatefulWidget {
   final String name;
   final String email;
-  const EditProfileScreen({super.key, required this.name, required this.email});
+  final String? imagePath;
+  const EditProfileScreen(
+      {super.key,
+      required this.name,
+      required this.email,
+      this.imagePath});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -373,6 +397,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _emailCtrl;
   late TextEditingController _phoneCtrl;
   final _formKey = GlobalKey<FormState>();
+  String? _imagePath;
+  final _picker = ImagePicker();
 
   @override
   void initState() {
@@ -380,6 +406,75 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameCtrl = TextEditingController(text: widget.name);
     _emailCtrl = TextEditingController(text: widget.email);
     _phoneCtrl = TextEditingController(text: '+977 9800000000');
+    _imagePath = widget.imagePath;
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    Navigator.pop(context); // close bottom sheet
+    final picked = await _picker.pickImage(
+        source: source, imageQuality: 85, maxWidth: 600);
+    if (picked != null) {
+      setState(() => _imagePath = picked.path);
+    }
+  }
+
+  void _showImageSourceSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2))),
+              const Text('Change Profile Photo',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: AppTheme.darkText)),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const CircleAvatar(
+                    backgroundColor: AppTheme.lightOrange,
+                    child: Icon(Icons.camera_alt,
+                        color: AppTheme.primaryOrange)),
+                title: const Text('Take Photo'),
+                onTap: () => _pickImage(ImageSource.camera),
+              ),
+              ListTile(
+                leading: const CircleAvatar(
+                    backgroundColor: AppTheme.lightOrange,
+                    child:
+                        Icon(Icons.photo_library, color: AppTheme.primaryOrange)),
+                title: const Text('Choose from Gallery'),
+                onTap: () => _pickImage(ImageSource.gallery),
+              ),
+              if (_imagePath != null)
+                ListTile(
+                  leading: const CircleAvatar(
+                      backgroundColor: Color(0xFFFFEBEB),
+                      child: Icon(Icons.delete_outline, color: Colors.red)),
+                  title: const Text('Remove Photo',
+                      style: TextStyle(color: Colors.red)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() => _imagePath = null);
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -392,10 +487,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   void _save() {
     if (_formKey.currentState!.validate()) {
-      Navigator.pop(context, {
+      final result = {
         'name': _nameCtrl.text.trim(),
         'email': _emailCtrl.text.trim(),
-      });
+      };
+      if (_imagePath != null) result['imagePath'] = _imagePath!;
+      Navigator.pop(context, result);
     }
   }
 
@@ -412,24 +509,41 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             Center(
               child: Stack(
                 children: [
-                  Container(
-                    width: 90,
-                    height: 90,
-                    decoration: const BoxDecoration(
-                        color: AppTheme.lightOrange, shape: BoxShape.circle),
-                    child: const Icon(Icons.person_rounded,
-                        color: AppTheme.primaryOrange, size: 50),
+                  GestureDetector(
+                    onTap: _showImageSourceSheet,
+                    child: Container(
+                      width: 90,
+                      height: 90,
+                      decoration: BoxDecoration(
+                        color: AppTheme.lightOrange,
+                        shape: BoxShape.circle,
+                        image: _imagePath != null
+                            ? DecorationImage(
+                                image: FileImage(File(_imagePath!)),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                      ),
+                      child: _imagePath == null
+                          ? const Icon(Icons.person_rounded,
+                              color: AppTheme.primaryOrange, size: 50)
+                          : null,
+                    ),
                   ),
                   Positioned(
                     bottom: 0,
                     right: 0,
-                    child: Container(
-                      width: 28,
-                      height: 28,
-                      decoration: const BoxDecoration(
-                          color: AppTheme.primaryOrange, shape: BoxShape.circle),
-                      child: const Icon(Icons.camera_alt,
-                          size: 14, color: Colors.white),
+                    child: GestureDetector(
+                      onTap: _showImageSourceSheet,
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: const BoxDecoration(
+                            color: AppTheme.primaryOrange,
+                            shape: BoxShape.circle),
+                        child: const Icon(Icons.camera_alt,
+                            size: 14, color: Colors.white),
+                      ),
                     ),
                   ),
                 ],
@@ -753,7 +867,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 fontWeight: FontWeight.w500, color: AppTheme.darkText)),
         value: value,
         onChanged: onChanged,
-        activeColor: AppTheme.primaryOrange,
+        activeThumbColor: AppTheme.primaryOrange,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );
