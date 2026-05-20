@@ -5,6 +5,7 @@ import 'theme/app_theme.dart';
 import 'screens/home_screen.dart';
 import 'screens/bookings_screen.dart';
 import 'screens/other_screens.dart';
+import 'screens/splash_screen.dart';          // ← NEW
 import 'widgets/custom_bottom_nav_bar.dart';
 
 void main() {
@@ -24,14 +25,17 @@ class HomeServicesApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Home Services',
+      title: 'SewaMitra',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme.copyWith(
         textTheme: GoogleFonts.poppinsTextTheme(
           AppTheme.lightTheme.textTheme,
         ),
       ),
-      home: const MainNavigation(),
+      // ── Show splash first, it navigates to MainNavigation itself ──────────
+      home: const SplashScreen(
+        nextScreen: MainNavigation(),
+      ),
     );
   }
 }
