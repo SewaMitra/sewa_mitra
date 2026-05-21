@@ -153,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
 
-              const SizedBox(height: 25),
+git               const SizedBox(height: 25),
 
               // PHONE LOGIN
 
