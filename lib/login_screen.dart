@@ -89,7 +89,7 @@ class LoginScreen extends StatelessWidget {
                 onPressed: () {},
                 child: const Text(
                   'Sign in',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ),
