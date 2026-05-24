@@ -8,3 +8,6 @@ class FilterSortScreen extends StatelessWidget {
     return Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
