@@ -18,3 +18,9 @@ class FilterSortScreen extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
+          const Text(
+            "CATEGORY",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
