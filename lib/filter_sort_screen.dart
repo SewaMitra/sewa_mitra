@@ -24,3 +24,7 @@ class FilterSortScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
+            Wrap(
+              spacing: 10,
+              children: [],
+            )
