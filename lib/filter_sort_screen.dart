@@ -28,3 +28,8 @@ class FilterSortScreen extends StatelessWidget {
               spacing: 10,
               children: [],
             )
+            ChoiceChip(
+            label: const Text("All"),
+      selected: true,
+      onSelected: (_) {},
+    )
