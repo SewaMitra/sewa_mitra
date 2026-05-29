@@ -33,3 +33,8 @@ class FilterSortScreen extends StatelessWidget {
       selected: true,
       onSelected: (_) {},
     )
+    ChoiceChip(
+      label: const Text("Electrical"),
+      selected: false,
+      onSelected: (_) {},
+    )
