@@ -43,3 +43,14 @@ class FilterSortScreen extends StatelessWidget {
       selected: false,
       onSelected: (_) {},
     )
+    ChoiceChip(
+      label: const Text("Cleaning"),
+      selected: false,
+      onSelected: (_) {},
+    )
+    const Text(
+      "SORT BY",
+      style: TextStyle(
+        fontWeight: FontWeight.bold,
+      ),
+    ),
