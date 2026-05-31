@@ -11,12 +11,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: const PaymentScreen(
-        bookingId: "BK101",
-        amount: 2500,
-        serviceName: "Cleaning Service",
+      title: 'Sewa Mitra',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        fontFamily: 'Roboto',
+        useMaterial3: true,
       ),
+      home: const PaymentScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
