@@ -7,12 +7,15 @@ class PaymentScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('Payment'),
+        title: const Text(
+          'Payment',
+          style: TextStyle(color: Color(0xFF2C3E50), fontWeight: FontWeight.w600),
+        ),
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 0.5,
+        foregroundColor: const Color(0xFF2C3E50),
+        elevation: 0,
         centerTitle: false,
       ),
       body: SafeArea(
@@ -24,13 +27,17 @@ class PaymentScreen extends StatelessWidget {
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF2C3E50), Color(0xFF34495E)],
+                ),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.black.withOpacity(0.1),
                     blurRadius: 10,
-                    offset: const Offset(0, 2),
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
@@ -44,38 +51,38 @@ class PaymentScreen extends StatelessWidget {
                         'Total due',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey,
+                          color: Colors.white70,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 8),
                       const Text(
-                        'Rs. 2,100',
+                        'Rs. 1,200',
                         style: TextStyle(
-                          fontSize: 28,
+                          fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Electric Pro Services Booking #4821',
+                        'Electric Pro Services · Booking #4821',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey[600],
+                          color: Colors.white70,
                         ),
                       ),
                     ],
                   ),
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
                       Icons.electric_bolt,
-                      color: Colors.blue[700],
-                      size: 28,
+                      color: const Color(0xFFFF6B35),
+                      size: 32,
                     ),
                   ),
                 ],
@@ -84,13 +91,13 @@ class PaymentScreen extends StatelessWidget {
 
             // Section title
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Text(
                 'Select payment method',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey[800],
+                  color: const Color(0xFF2C3E50),
                 ),
               ),
             ),
@@ -114,7 +121,7 @@ class PaymentScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   _buildPaymentMethodTile(
                     icon: Icons.account_balance_wallet,
                     title: 'eSewa',
@@ -122,7 +129,7 @@ class PaymentScreen extends StatelessWidget {
                     isSelected: false,
                     onTap: () => _showComingSoon(context),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   _buildPaymentMethodTile(
                     icon: Icons.qr_code,
                     title: 'Khalti',
@@ -130,11 +137,19 @@ class PaymentScreen extends StatelessWidget {
                     isSelected: false,
                     onTap: () => _showComingSoon(context),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   _buildPaymentMethodTile(
                     icon: Icons.account_balance,
                     title: 'Bank Transfer',
-                    subtitle: 'NABIL, RBB, NIC Asia......',
+                    subtitle: 'NABIL, NIC Asia...',
+                    isSelected: false,
+                    onTap: () => _showComingSoon(context),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildPaymentMethodTile(
+                    icon: Icons.currency_rupee,
+                    title: 'Cash on service',
+                    subtitle: 'Pay after completion',
                     isSelected: false,
                     onTap: () => _showComingSoon(context),
                   ),
@@ -147,7 +162,7 @@ class PaymentScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: SizedBox(
                 width: double.infinity,
-                height: 52,
+                height: 54,
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(
@@ -158,7 +173,7 @@ class PaymentScreen extends StatelessWidget {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[700],
+                    backgroundColor: const Color(0xFFFF6B35),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -166,7 +181,7 @@ class PaymentScreen extends StatelessWidget {
                     elevation: 0,
                   ),
                   child: const Text(
-                    'Proceed to pay',
+                    'Proceed to Pay',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -178,6 +193,7 @@ class PaymentScreen extends StatelessWidget {
           ],
         ),
       ),
+      bottomNavigationBar: _buildBottomNavigationBar(context),
     );
   }
 
@@ -191,33 +207,101 @@ class PaymentScreen extends StatelessWidget {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         side: BorderSide(
-          color: isSelected ? Colors.blue.shade300 : Colors.grey.shade200,
+          color: isSelected ? const Color(0xFFFF6B35) : Colors.grey.shade200,
           width: isSelected ? 2 : 1,
         ),
       ),
       child: ListTile(
         onTap: onTap,
         leading: Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: Colors.blue[50],
-            borderRadius: BorderRadius.circular(10),
+            color: const Color(0xFFFF6B35).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: Colors.blue[700], size: 24),
+          child: Icon(icon, color: const Color(0xFFFF6B35), size: 24),
         ),
         title: Text(
           title,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF2C3E50),
+          ),
         ),
         subtitle: Text(
           subtitle,
           style: TextStyle(fontSize: 12, color: Colors.grey[600]),
         ),
         trailing: isSelected
-            ? Icon(Icons.check_circle, color: Colors.blue[700], size: 22)
+            ? Icon(Icons.check_circle, color: const Color(0xFFFF6B35), size: 22)
             : Icon(Icons.chevron_right, color: Colors.grey[400], size: 22),
+      ),
+    );
+  }
+
+  Widget _buildBottomNavigationBar(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        selectedItemColor: const Color(0xFFFF6B35),
+        unselectedItemColor: Colors.grey[600],
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+        currentIndex: 2, // Wallet is selected (orange color)
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.bookmark), label: 'Bookings'),
+          BottomNavigationBarItem(icon: Icon(Icons.wallet), label: 'Wallet'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+        onTap: (index) {
+          // Handle navigation based on index
+          switch (index) {
+            case 0:
+            // Navigate to Home
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Navigate to Home')),
+              );
+              break;
+            case 1:
+            // Navigate to Bookings
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Navigate to Bookings')),
+              );
+              break;
+            case 2:
+            // Already on Wallet
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('You are in Wallet section')),
+              );
+              break;
+            case 3:
+            // Navigate to Alerts
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Navigate to Alerts')),
+              );
+              break;
+            case 4:
+            // Navigate to Profile
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Navigate to Profile')),
+              );
+              break;
+          }
+        },
       ),
     );
   }

@@ -7,7 +7,7 @@ class PaymentSuccessScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -20,12 +20,12 @@ class PaymentSuccessScreen extends StatelessWidget {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: Colors.green[50],
+                  color: const Color(0xFF27AE60).withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.check_circle,
-                  color: Colors.green[600],
+                  color: const Color(0xFF27AE60),
                   size: 60,
                 ),
               ),
@@ -33,11 +33,11 @@ class PaymentSuccessScreen extends StatelessWidget {
 
               // Success text
               const Text(
-                'Payment successful',
+                'Payment successful!',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: Color(0xFF2C3E50),
                 ),
               ),
               const SizedBox(height: 8),
@@ -49,12 +49,12 @@ class PaymentSuccessScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
 
               // Booking details card
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
@@ -69,14 +69,14 @@ class PaymentSuccessScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     _buildDetailRow('Service', 'Electric Pro'),
-                    const Divider(height: 24),
+                    const Divider(height: 24, thickness: 1),
                     _buildDetailRow('Booking ID', '#BK4821'),
-                    const Divider(height: 24),
+                    const Divider(height: 24, thickness: 1),
                     _buildDetailRow('Method', 'Credit Card'),
-                    const Divider(height: 24),
+                    const Divider(height: 24, thickness: 1),
                     _buildDetailRow('Date', '11 May 2026'),
-                    const Divider(height: 24),
-                    _buildDetailRow('Total Paid', 'Rs. 2,100', isBold: true),
+                    const Divider(height: 24, thickness: 1),
+                    _buildDetailRow('Total paid', 'Rs. 1,200', isBold: true),
                   ],
                 ),
               ),
@@ -97,7 +97,8 @@ class PaymentSuccessScreen extends StatelessWidget {
                       label: const Text('Download Receipt'),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: BorderSide(color: Colors.grey.shade400),
+                        side: BorderSide(color: const Color(0xFFFF6B35)),
+                        foregroundColor: const Color(0xFFFF6B35),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -115,9 +116,9 @@ class PaymentSuccessScreen extends StatelessWidget {
                         );
                       },
                       icon: const Icon(Icons.visibility),
-                      label: const Text('View Booking Details'),
+                      label: const Text('View booking details'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[700],
+                        backgroundColor: const Color(0xFFFF6B35),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -129,22 +130,11 @@ class PaymentSuccessScreen extends StatelessWidget {
               ),
 
               const Spacer(flex: 1),
-
-              // Bottom hint text
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text(
-                  'Pay Rs. 1,200',
-                  style: TextStyle(
-                    color: Colors.grey[400],
-                    fontSize: 12,
-                  ),
-                ),
-              ),
             ],
           ),
         ),
       ),
+      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
@@ -155,19 +145,52 @@ class PaymentSuccessScreen extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 15,
             color: Colors.grey[600],
           ),
         ),
         Text(
           value,
           style: TextStyle(
-            fontSize: 14,
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            color: isBold ? Colors.black87 : Colors.grey[800],
+            fontSize: 15,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
+            color: isBold ? const Color(0xFF2C3E50) : const Color(0xFF2C3E50),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildBottomNavigationBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        selectedItemColor: const Color(0xFFFF6B35),
+        unselectedItemColor: Colors.grey[600],
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.bookmark), label: 'Bookings'),
+          BottomNavigationBarItem(icon: Icon(Icons.wallet), label: 'Wallet'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+        currentIndex: 0,
+        onTap: (index) {
+          // Handle navigation
+        },
+      ),
     );
   }
 }

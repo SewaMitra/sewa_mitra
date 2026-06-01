@@ -12,7 +12,7 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
   final _formKey = GlobalKey<FormState>();
   final _cardNumberController = TextEditingController();
   final _cardHolderController = TextEditingController(text: 'Salman Ansari');
-  final _expiryController = TextEditingController(text: '07/29');
+  final _expiryController = TextEditingController(text: '09/27');
   final _cvvController = TextEditingController();
 
   @override
@@ -50,12 +50,15 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('Card Payment'),
+        title: const Text(
+          'Card Payment',
+          style: TextStyle(color: Color(0xFF2C3E50), fontWeight: FontWeight.w600),
+        ),
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 0.5,
+        foregroundColor: const Color(0xFF2C3E50),
+        elevation: 0,
         centerTitle: false,
       ),
       body: SafeArea(
@@ -66,42 +69,6 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Amount indicator
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.08),
-                        blurRadius: 8,
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Payment Amount',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const Text(
-                        'Rs. 2,100',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
                 // Card preview
                 Container(
                   width: double.infinity,
@@ -110,7 +77,7 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [Color(0xFF1a237e), Color(0xFF0d47a1)],
+                      colors: [Color(0xFF2C3E50), Color(0xFF34495E)],
                     ),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
@@ -155,12 +122,12 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                                   : _cardNumberController.text,
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 18,
+                                fontSize: 20,
                                 letterSpacing: 2,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 16),
                             Row(
                               children: [
                                 Expanded(
@@ -218,7 +185,7 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 30),
 
                 // Card number field
                 TextFormField(
@@ -236,7 +203,7 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                      borderSide: const BorderSide(color: Color(0xFFFF6B35), width: 2),
                     ),
                   ),
                   keyboardType: TextInputType.number,
@@ -260,35 +227,6 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Card holder name
-                TextFormField(
-                  controller: _cardHolderController,
-                  decoration: InputDecoration(
-                    labelText: 'CARD HOLDER NAME',
-                    hintText: 'Salman Ansari',
-                    prefixIcon: const Icon(Icons.person),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
-                    ),
-                  ),
-                  onChanged: (_) => setState(() {}),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter card holder name';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
                 // Expiry and CVV row
                 Row(
                   children: [
@@ -296,7 +234,7 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                       child: TextFormField(
                         controller: _expiryController,
                         decoration: InputDecoration(
-                          labelText: 'EXPIRY DATE',
+                          labelText: 'EXPIRY',
                           hintText: 'MM/YY',
                           prefixIcon: const Icon(Icons.calendar_today),
                           border: OutlineInputBorder(
@@ -350,7 +288,62 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
+
+                // Card holder name
+                TextFormField(
+                  controller: _cardHolderController,
+                  decoration: InputDecoration(
+                    labelText: 'CARD HOLDER NAME',
+                    hintText: 'Salman Ansari',
+                    prefixIcon: const Icon(Icons.person),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFFF6B35), width: 2),
+                    ),
+                  ),
+                  onChanged: (_) => setState(() {}),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter card holder name';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                // SSL Security message
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF6B35).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.lock, color: const Color(0xFFFF6B35), size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Secured with 256-bit SSL encryption',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: const Color(0xFF2C3E50),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 30),
 
                 // Pay button
                 SizedBox(
@@ -368,7 +361,7 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[700],
+                      backgroundColor: const Color(0xFFFF6B35),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
@@ -376,7 +369,7 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                       elevation: 0,
                     ),
                     child: const Text(
-                      'Pay Rs. 2,100',
+                      'Pay Rs. 1,200',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
