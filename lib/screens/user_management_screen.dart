@@ -1,5 +1,21 @@
 import 'package:flutter/material.dart';
 
+class User {
+  final String name;
+  final String email;
+  final String status;
+  final String role;
+  final Color statusColor;
+
+  User({
+    required this.name,
+    required this.email,
+    required this.status,
+    required this.role,
+    required this.statusColor,
+  });
+}
+
 class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({super.key});
 
@@ -17,42 +33,42 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       email: 'salman@email.com',
       status: 'Active',
       role: 'Customer',
-      statusColor: Color(0xFF27AE60),
+      statusColor: const Color(0xFF27AE60),
     ),
     User(
       name: 'Prajanva',
       email: 'prajan@gmail.com',
       status: 'Active',
       role: 'Customer',
-      statusColor: Color(0xFF27AE60),
+      statusColor: const Color(0xFF27AE60),
     ),
     User(
       name: 'Ali',
       email: 'ali@gmail.com',
       status: 'Suspended',
       role: 'Customer',
-      statusColor: Color(0xFFFF6B35),
+      statusColor: const Color(0xFFFF6B35),
     ),
     User(
       name: 'Sonam',
       email: 'sonam@gmail.com',
       status: 'Active',
       role: 'Customer',
-      statusColor: Color(0xFF27AE60),
+      statusColor: const Color(0xFF27AE60),
     ),
     User(
       name: 'Ramesh',
       email: 'ramesh@email.com',
       status: 'Active',
       role: 'Customer',
-      statusColor: Color(0xFF27AE60),
+      statusColor: const Color(0xFF27AE60),
     ),
     User(
       name: 'Sita',
       email: 'sita@gmail.com',
       status: 'Suspended',
       role: 'Customer',
-      statusColor: Color(0xFFFF6B35),
+      statusColor: const Color(0xFFFF6B35),
     ),
   ];
 
@@ -80,7 +96,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Stats Cards
           Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -105,8 +120,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               ],
             ),
           ),
-
-          // Search Bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Container(
@@ -138,8 +151,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               ),
             ),
           ),
-
-          // Users List Title
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Text(
@@ -151,8 +162,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               ),
             ),
           ),
-
-          // Users List
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -369,7 +378,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   void _showBanDialog(BuildContext context, String userName) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Ban User'),
         content: Text('Are you sure you want to ban $userName?'),
@@ -399,7 +408,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   void _showUnbanDialog(BuildContext context, String userName) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Restore User'),
         content: Text('Are you sure you want to restore $userName?'),
@@ -429,7 +438,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   void _showUserDetails(BuildContext context, User user) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(user.name),
         content: Column(
@@ -489,13 +498,13 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           ),
         ],
       ),
-      child: const BottomNavigationBar(
+      child: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         selectedItemColor: Color(0xFFFF6B35),
         unselectedItemColor: Colors.grey,
         selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
-        currentIndex: 4, // Profile selected for admin
+        currentIndex: 4,
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.bookmark), label: 'Bookings'),
@@ -506,20 +515,4 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       ),
     );
   }
-}
-
-class User {
-  final String name;
-  final String email;
-  final String status;
-  final String role;
-  final Color statusColor;
-
-  User({
-    required this.name,
-    required this.email,
-    required this.status,
-    required this.role,
-    required this.statusColor,
-  });
 }

@@ -252,7 +252,6 @@ class _JoinProviderScreenState extends State<JoinProviderScreen> {
                           border: Border.all(
                             color: _isUploaded ? const Color(0xFF27AE60) : Colors.grey.shade300,
                             width: 2,
-                            style: BorderStyle.solid,
                           ),
                           borderRadius: BorderRadius.circular(12),
                           color: _isUploaded
@@ -360,11 +359,11 @@ class _JoinProviderScreenState extends State<JoinProviderScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(context),
+      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
-  Widget _buildBottomNavigationBar(BuildContext context) {
+  Widget _buildBottomNavigationBar() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -379,20 +378,17 @@ class _JoinProviderScreenState extends State<JoinProviderScreen> {
       child: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFFFF6B35),
-        unselectedItemColor: Colors.grey[600],
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-        currentIndex: 4, // Profile selected
-        items: const [
+        selectedItemColor: Color(0xFFFF6B35),
+        unselectedItemColor: Colors.grey,
+        selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
+        currentIndex: 4,
+        items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.bookmark), label: 'Bookings'),
           BottomNavigationBarItem(icon: Icon(Icons.wallet), label: 'Wallet'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Notifications'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
-        onTap: (index) {
-          // Handle navigation
-        },
       ),
     );
   }
