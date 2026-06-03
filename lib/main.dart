@@ -18,6 +18,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+
       title: 'Sewa Mitra',
       theme: ThemeData(
         primaryColor: const Color(0xFFFF6B35),
