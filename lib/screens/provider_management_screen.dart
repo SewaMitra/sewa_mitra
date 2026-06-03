@@ -139,6 +139,18 @@ class ProviderManagementScreen extends StatelessWidget {
               statusColor: const Color(0xFF27AE60),
               startingPrice: 600,
             ),
+            const SizedBox(height: 12),
+            _buildProviderCard(
+              context: context,
+              name: 'Tech Repair Pros',
+              category: 'Electronics',
+              rating: 4.9,
+              reviews: 45,
+              status: 'Pending',
+              statusColor: const Color(0xFFFF6B35),
+              startingPrice: 500,
+            ),
+
             const SizedBox(height: 20),
           ],
         ),
