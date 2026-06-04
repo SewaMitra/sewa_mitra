@@ -153,3 +153,38 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
+                const SizedBox(height: 20),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text('Continue with phone'),
+                  ),
+                ),
+
+                const SizedBox(height: 15),
+
+                const Text(
+                  'Phone login UI only. No OTP or backend connected.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.blueGrey,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
