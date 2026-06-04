@@ -54,3 +54,8 @@ class FilterSortScreen extends StatelessWidget {
         fontWeight: FontWeight.bold,
       ),
     ),
+    ChoiceChip(
+    label: const Text("Rating"),
+    selected: true,
+    onSelected: (_) {},
+    )
