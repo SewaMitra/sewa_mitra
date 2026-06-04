@@ -59,3 +59,24 @@ class FilterSortScreen extends StatelessWidget {
     selected: true,
     onSelected: (_) {},
     )
+    ChoiceChip(
+    label: const Text("Price: Low-High"),
+    selected: false,
+    onSelected: (_) {},
+    )
+    Slider(
+    value: 2000,
+    min: 0,
+    max: 6000,
+    onChanged: (value) {},
+    )
+    FilterChip(
+    label: const Text("Verified Only"),
+    selected: true,
+    onSelected: (_) {},
+    )
+    FilterChip(
+    label: const Text("Available Today"),
+    selected: false,
+    onSelected: (_) {},
+    )
