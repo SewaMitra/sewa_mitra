@@ -80,16 +80,18 @@ class ProviderManagementScreen extends StatelessWidget {
 
             // Provider Cards
             _buildProviderCard(
+              context: context,
               name: 'Electric Pro Services',
               category: 'Electrical',
               rating: 4.8,
               jobs: 120,
               status: 'Active',
               statusColor: const Color(0xFF27AE60),
-              price: null,
+              // price: null,
             ),
             const SizedBox(height: 12),
             _buildProviderCard(
+              context: context,
               name: 'Quick Fix Plumbing',
               category: 'Plumber',
               rating: 4.6,
@@ -100,6 +102,7 @@ class ProviderManagementScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildProviderCard(
+              context: context,
               name: 'Sparkle Clean Services',
               category: 'Cleaning',
               rating: 4.5,
@@ -110,6 +113,7 @@ class ProviderManagementScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildProviderCard(
+              context: context,
               name: 'Arctic Cool AC Repair',
               category: 'AC Repair',
               rating: 4.7,
@@ -120,6 +124,7 @@ class ProviderManagementScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildProviderCard(
+              context: context,
               name: 'Smart Home Solutions',
               category: 'Smart Devices',
               rating: 4.9,
@@ -130,6 +135,7 @@ class ProviderManagementScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildProviderCard(
+              context: context,
               name: 'Garden Experts',
               category: 'Gardening',
               rating: 4.4,
@@ -199,6 +205,7 @@ class ProviderManagementScreen extends StatelessWidget {
   }
 
   Widget _buildProviderCard({
+    required BuildContext context,
     required String name,
     required String category,
     required double rating,
@@ -628,7 +635,7 @@ class ProviderManagementScreen extends StatelessWidget {
           ),
         ],
       ),
-      child: const BottomNavigationBar(
+      child:  BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         selectedItemColor: Color(0xFFFF6B35),

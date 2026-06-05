@@ -489,7 +489,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           ),
         ],
       ),
-      child: const BottomNavigationBar(
+      child:  BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         selectedItemColor: Color(0xFFFF6B35),
