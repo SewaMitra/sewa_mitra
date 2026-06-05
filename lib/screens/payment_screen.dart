@@ -59,7 +59,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     final primaryOrange = const Color(0xFFFF6B35);
-    final lightOrange = primaryOrange.withOpacity(0.1);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -67,7 +66,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         title: const Text(
           'Payment',
           style: TextStyle(
-            color: Colors.black,
+            color: Colors.black87,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -77,12 +76,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
         centerTitle: false,
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Payment details card - Orange theme
-          Container(
-            width: double.infinity,
+          // Payment details section - EXACT match
+          Padding(
             padding: const EdgeInsets.all(20),
-            color: lightOrange,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -96,17 +94,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 const SizedBox(height: 4),
                 Text(
                   'Rs. ${widget.amount.toStringAsFixed(0)}',
-                  style: TextStyle(
-                    fontSize: 32,
+                  style: const TextStyle(
+                    fontSize: 36,
                     fontWeight: FontWeight.bold,
-                    color: primaryOrange,
+                    color: Colors.black87,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   '${widget.serviceName} · Booking #${widget.bookingId}',
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 13,
                     color: Colors.grey,
                   ),
                 ),
@@ -114,64 +112,62 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
 
+          const SizedBox(height: 10),
+
+          // Select payment method text
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              'Select payment method',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
           // Payment methods list
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
-                const Text(
-                  'Select payment method',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
                 _buildMethodCard(
                   icon: Icons.credit_card,
                   title: 'Credit / Debit Card',
                   subtitle: 'Visa, Mastercard accepted',
                   value: 'Credit Card',
                   primaryOrange: primaryOrange,
-                  lightOrange: lightOrange,
                 ),
-
                 _buildMethodCard(
                   icon: Icons.wallet,
                   title: 'eSewa',
                   subtitle: 'Mobile wallet',
                   value: 'eSewa',
                   primaryOrange: primaryOrange,
-                  lightOrange: lightOrange,
                 ),
-
                 _buildMethodCard(
                   icon: Icons.account_balance_wallet,
                   title: 'Khalti',
                   subtitle: 'Digital wallet',
                   value: 'Khalti',
                   primaryOrange: primaryOrange,
-                  lightOrange: lightOrange,
                 ),
-
                 _buildMethodCard(
                   icon: Icons.account_balance,
                   title: 'Bank Transfer',
                   subtitle: 'NABIL, NIC Asia...',
                   value: 'Bank Transfer',
                   primaryOrange: primaryOrange,
-                  lightOrange: lightOrange,
                 ),
-
                 _buildMethodCard(
                   icon: Icons.money,
                   title: 'Cash on service',
                   subtitle: 'Pay after completion',
                   value: 'Cash on Service',
                   primaryOrange: primaryOrange,
-                  lightOrange: lightOrange,
                 ),
               ],
             ),
@@ -179,13 +175,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
           // Proceed to Pay button
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
+                  color: Colors.grey.withOpacity(0.1),
+                  blurRadius: 8,
                   offset: const Offset(0, -2),
                 ),
               ],
@@ -236,7 +232,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     required String subtitle,
     required String value,
     required Color primaryOrange,
-    required Color lightOrange,
   }) {
     final isSelected = selectedMethod == value;
 
@@ -250,7 +245,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isSelected ? lightOrange : Colors.white,
+          color: isSelected ? primaryOrange.withOpacity(0.08) : Colors.white,
           border: Border.all(
             color: isSelected ? primaryOrange : Colors.grey.shade300,
             width: isSelected ? 2 : 1,
