@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'payment_success_screen.dart';
+import 'card_payment_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   final double amount;
@@ -20,6 +21,128 @@ class _PaymentScreenState extends State<PaymentScreen> {
   String? selectedMethod;
   bool isLoading = false;
 
+  void payWithESewa() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('eSewa Payment'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Amount: Rs. ${widget.amount.toStringAsFixed(0)}'),
+            const SizedBox(height: 16),
+            const TextField(
+              decoration: InputDecoration(labelText: 'eSewa PIN'),
+              obscureText: true,
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _completePayment('eSewa');
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            child: Text('Pay Rs. ${widget.amount.toStringAsFixed(0)}'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void payWithKhalti() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Khalti Payment'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Amount: Rs. ${widget.amount.toStringAsFixed(0)}'),
+            const SizedBox(height: 16),
+            const TextField(
+              decoration: InputDecoration(labelText: 'Khalti MPIN'),
+              obscureText: true,
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _completePayment('Khalti');
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
+            child: Text('Pay Rs. ${widget.amount.toStringAsFixed(0)}'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void showBankTransfer() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Bank Transfer'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Transfer Rs. ${widget.amount.toStringAsFixed(0)} to:'),
+            const SizedBox(height: 12),
+            const Text('Bank: Nabil Bank', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Account: Sewa Mitra Pvt Ltd'),
+            const Text('Number: 1234567890'),
+            const Text('IFSC: NABILNP123'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _completePayment('Bank Transfer');
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+            child: const Text('I Have Transferred'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _completePayment(String method) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentSuccessScreen(
+          amount: widget.amount,
+          bookingId: widget.bookingId,
+          serviceName: widget.serviceName,
+          transactionId: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+          method: method,
+        ),
+      ),
+    );
+  }
+
   void processPayment() {
     if (selectedMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -28,25 +151,28 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return;
     }
 
-    setState(() => isLoading = true);
-
-    // Simulate payment processing
-    Future.delayed(const Duration(seconds: 2), () {
-      setState(() => isLoading = false);
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PaymentSuccessScreen(
-            amount: widget.amount,
-            bookingId: widget.bookingId,
-            serviceName: widget.serviceName,
-            transactionId: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-            method: selectedMethod!,
-          ),
-        ),
-      );
-    });
+    switch (selectedMethod) {
+      case 'eSewa':
+        payWithESewa();
+        break;
+      case 'Khalti':
+        payWithKhalti();
+        break;
+      case 'Bank Transfer':
+        showBankTransfer();
+        break;
+      case 'Cash on Service':
+        _completePayment('Cash on Service');
+        break;
+      case 'Credit Card':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CardPaymentScreen()),
+        );
+        break;
+      default:
+        _completePayment(selectedMethod!);
+    }
   }
 
   @override
@@ -61,7 +187,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       ),
       body: Column(
         children: [
-          // Payment details card
+          // Payment details card - EXACT same as before
           Container(
             padding: const EdgeInsets.all(20),
             color: Colors.green.shade50,
@@ -82,7 +208,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
 
-          // Payment methods list
+          // Payment methods list - EXACT same as before
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(16),
@@ -133,7 +259,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
 
-          // Pay button
+          // Pay button - EXACT same as before
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
