@@ -51,6 +51,9 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final primaryOrange = const Color(0xFFFF6B35);
+    final lightOrange = primaryOrange.withOpacity(0.1);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -71,7 +74,7 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5E9),
+                  color: lightOrange,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -80,10 +83,10 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                     const SizedBox(height: 8),
                     Text(
                       'Rs. ${widget.amount.toStringAsFixed(0)}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF4CAF50),
+                        color: primaryOrange,
                       ),
                     ),
                   ],
@@ -94,10 +97,16 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
               // Card Number
               TextFormField(
                 controller: _cardNumberController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Card Number',
                   hintText: '1234 5678 9012 3456',
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: primaryOrange, width: 2),
+                  ),
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
@@ -115,10 +124,16 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                   Expanded(
                     child: TextFormField(
                       controller: _expiryController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Expiry',
                         hintText: 'MM/YY',
-                        border: OutlineInputBorder(),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: primaryOrange, width: 2),
+                        ),
                       ),
                       validator: (value) {
                         if (value == null || value.length < 5) {
@@ -132,10 +147,16 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                   Expanded(
                     child: TextFormField(
                       controller: _cvvController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'CVV',
                         hintText: '123',
-                        border: OutlineInputBorder(),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: primaryOrange, width: 2),
+                        ),
                       ),
                       obscureText: true,
                       keyboardType: TextInputType.number,
@@ -154,10 +175,16 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
               // Card Holder
               TextFormField(
                 controller: _cardHolderController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Card Holder Name',
                   hintText: 'SALMAN ANSARI',
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: primaryOrange, width: 2),
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -175,9 +202,9 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                 child: ElevatedButton(
                   onPressed: processPayment,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4CAF50),
+                    backgroundColor: primaryOrange,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   child: const Text(

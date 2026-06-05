@@ -29,7 +29,11 @@ class MyApp extends StatelessWidget {
           primary: const Color(0xFFFF6B35),
         ),
       ),
-      home: const PaymentScreen(amount: 0.0, bookingId: '', serviceName: '',), // Change this to test different screens
+      home: const PaymentScreen(
+        amount: 1200.0,
+        bookingId: '4821',
+        serviceName: 'Electric Pro Services',
+      ), // Change this to test different screens
       debugShowCheckedModeBanner: false,
     );
   }

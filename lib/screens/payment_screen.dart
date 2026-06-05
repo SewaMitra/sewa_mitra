@@ -58,27 +58,40 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final primaryOrange = const Color(0xFFFF6B35);
+    final lightOrange = primaryOrange.withOpacity(0.1);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Payment'),
+        title: const Text(
+          'Payment',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
         elevation: 0,
+        centerTitle: false,
       ),
       body: Column(
         children: [
-          // Payment details - EXACT original color
+          // Payment details card - Orange theme
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
-            color: Colors.green.shade50,  // Original light green
+            color: lightOrange,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
                   'Total due',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -86,26 +99,33 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Colors.green.shade700,  // Original green
+                    color: primaryOrange,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   '${widget.serviceName} · Booking #${widget.bookingId}',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
                 ),
               ],
             ),
           ),
 
-          // Payment methods
+          // Payment methods list
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 const Text(
                   'Select payment method',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -114,44 +134,58 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   title: 'Credit / Debit Card',
                   subtitle: 'Visa, Mastercard accepted',
                   value: 'Credit Card',
+                  primaryOrange: primaryOrange,
+                  lightOrange: lightOrange,
                 ),
+
                 _buildMethodCard(
                   icon: Icons.wallet,
                   title: 'eSewa',
                   subtitle: 'Mobile wallet',
                   value: 'eSewa',
+                  primaryOrange: primaryOrange,
+                  lightOrange: lightOrange,
                 ),
+
                 _buildMethodCard(
                   icon: Icons.account_balance_wallet,
                   title: 'Khalti',
                   subtitle: 'Digital wallet',
                   value: 'Khalti',
+                  primaryOrange: primaryOrange,
+                  lightOrange: lightOrange,
                 ),
+
                 _buildMethodCard(
                   icon: Icons.account_balance,
                   title: 'Bank Transfer',
                   subtitle: 'NABIL, NIC Asia...',
                   value: 'Bank Transfer',
+                  primaryOrange: primaryOrange,
+                  lightOrange: lightOrange,
                 ),
+
                 _buildMethodCard(
                   icon: Icons.money,
                   title: 'Cash on service',
                   subtitle: 'Pay after completion',
                   value: 'Cash on Service',
+                  primaryOrange: primaryOrange,
+                  lightOrange: lightOrange,
                 ),
               ],
             ),
           ),
 
-          // Pay button - EXACT original
+          // Proceed to Pay button
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
-                  blurRadius: 8,
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
                   offset: const Offset(0, -2),
                 ),
               ],
@@ -159,16 +193,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
             child: ElevatedButton(
               onPressed: processPayment,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,  // Original green button
+                backgroundColor: primaryOrange,
                 foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 50),
+                minimumSize: const Size(double.infinity, 52),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                elevation: 0,
               ),
               child: const Text(
                 'Proceed to Pay',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -177,8 +215,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
-        selectedItemColor: Colors.green,
+        elevation: 8,
+        selectedItemColor: primaryOrange,
         unselectedItemColor: Colors.grey,
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Bookings'),
@@ -195,6 +235,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
     required String title,
     required String subtitle,
     required String value,
+    required Color primaryOrange,
+    required Color lightOrange,
   }) {
     final isSelected = selectedMethod == value;
 
@@ -206,11 +248,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.green.shade50 : Colors.white,
+          color: isSelected ? lightOrange : Colors.white,
           border: Border.all(
-            color: isSelected ? Colors.green : Colors.grey.shade300,
+            color: isSelected ? primaryOrange : Colors.grey.shade300,
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(12),
@@ -220,7 +262,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             Icon(
               icon,
               size: 28,
-              color: isSelected ? Colors.green : Colors.grey.shade600,
+              color: isSelected ? primaryOrange : Colors.grey.shade600,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -232,15 +274,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
-                      color: isSelected ? Colors.green : Colors.black87,
+                      color: isSelected ? primaryOrange : Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
-                      color: Colors.grey.shade500,
+                      color: Colors.grey,
                     ),
                   ),
                 ],
@@ -249,7 +291,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             if (isSelected)
               Icon(
                 Icons.check_circle,
-                color: Colors.green,
+                color: primaryOrange,
                 size: 24,
               ),
           ],
