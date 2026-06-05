@@ -1,10 +1,18 @@
 # Project-level configuration.
 cmake_minimum_required(VERSION 3.14)
+<<<<<<< HEAD
 project(sewa_mitrabookings LANGUAGES CXX)
 
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "sewa_mitrabookings")
+=======
+project(sewa_mitra LANGUAGES CXX)
+
+# The name of the executable created for the application. Change this to change
+# the on-disk name of your application.
+set(BINARY_NAME "sewa_mitra")
+>>>>>>> 01f70b6d3fea397bff5d844b5a531ab365723797
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.

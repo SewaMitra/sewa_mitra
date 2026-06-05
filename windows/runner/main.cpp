@@ -27,7 +27,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   FlutterWindow window(project);
   Win32Window::Point origin(10, 10);
   Win32Window::Size size(1280, 720);
+<<<<<<< HEAD
   if (!window.Create(L"sewa_mitrabookings", origin, size)) {
+=======
+  if (!window.Create(L"sewa_mitra", origin, size)) {
+>>>>>>> 01f70b6d3fea397bff5d844b5a531ab365723797
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);

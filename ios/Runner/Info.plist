@@ -7,7 +7,11 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
+<<<<<<< HEAD
 	<string>Sewa Mitrabookings</string>
+=======
+	<string>Sewa Mitra</string>
+>>>>>>> 01f70b6d3fea397bff5d844b5a531ab365723797
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +19,11 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
+<<<<<<< HEAD
 	<string>sewa_mitrabookings</string>
+=======
+	<string>sewa_mitra</string>
+>>>>>>> 01f70b6d3fea397bff5d844b5a531ab365723797
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

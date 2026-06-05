@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
+<<<<<<< HEAD
         android:label="sewa_mitrabookings"
+=======
+        android:label="sewa_mitra"
+>>>>>>> 01f70b6d3fea397bff5d844b5a531ab365723797
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
