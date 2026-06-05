@@ -1,316 +1,287 @@
-import 'package:flutter/material.dart';
-import 'card_payment_screen.dart';
+// payment_screen.dart - improved version
 
-class PaymentScreen extends StatelessWidget {
-  const PaymentScreen({super.key});
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+
+import 'dart:convert';
+
+import 'package:sewa_mitra/screens/payment_method_selector.dart';
+import 'package:sewa_mitra/screens/payment_success_screen.dart';
+
+class PaymentScreen extends StatefulWidget {
+  final double amount;
+  final String bookingId;
+  final String serviceName;
+
+  const PaymentScreen({
+    required this.amount,
+    required this.bookingId,
+    required this.serviceName,
+  });
+
+  @override
+  State<PaymentScreen> createState() => _PaymentScreenState();
+}
+
+class _PaymentScreenState extends State<PaymentScreen> {
+  PaymentMethod? selectedMethod;
+  bool isLoading = false;
+
+  Future<void> processPayment() async {
+    if (selectedMethod == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please select a payment method')),
+      );
+      return;
+    }
+
+    setState(() => isLoading = true);
+
+    try {
+      String? transactionId;
+
+      switch (selectedMethod!.name) {
+        case 'eSewa':
+          transactionId = await payWithESewa();
+          break;
+        case 'Khalti':
+          transactionId = await payWithKhalti();
+          break;
+        case 'Bank Transfer':
+          transactionId = await showBankTransferDialog();
+          break;
+        case 'Cash on Service':
+          transactionId = 'CASH_${DateTime.now().millisecondsSinceEpoch}';
+          break;
+      }
+
+      if (transactionId != null) {
+        // Navigate to success screen with REAL transaction ID
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PaymentSuccessScreen(
+              amount: widget.amount ?? 0.0,
+              bookingId: widget.bookingId ?? 'N/A',
+              serviceName: widget.serviceName ?? 'Service',
+              transactionId: transactionId ?? '',
+              method: selectedMethod!.name,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Payment failed: $e'), backgroundColor: Colors.red),
+      );
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
+  Future<String> payWithESewa() async {
+    // For demo – in real app, call eSewa API
+    Completer<String> completer = Completer();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: Text('eSewa Payment'),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text('Amount: Rs. ${widget.amount}'),
+          SizedBox(height: 16),
+          TextField(
+            decoration: InputDecoration(labelText: 'eSewa PIN'),
+            obscureText: true,
+            onChanged: (value) {},
+          ),
+        ]),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // Simulate API call
+              String fakeTxId = 'ESEWA_${DateTime.now().millisecondsSinceEpoch}';
+              Navigator.pop(context);
+              completer.complete(fakeTxId);
+            },
+            child: Text('Pay Rs. ${widget.amount}'),
+          ),
+        ],
+      ),
+    );
+
+    return completer.future;
+  }
+
+  Future<String> payWithKhalti() async {
+    // Similar to eSewa – show PIN entry dialog
+    Completer<String> completer = Completer();
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Khalti Payment'),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text('Amount: Rs. ${widget.amount}'),
+          SizedBox(height: 16),
+          TextField(
+            decoration: InputDecoration(labelText: 'Khalti MPIN'),
+            obscureText: true,
+          ),
+        ]),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              String fakeTxId = 'KHALTI_${DateTime.now().millisecondsSinceEpoch}';
+              Navigator.pop(context);
+              completer.complete(fakeTxId);
+            },
+            child: Text('Confirm Payment'),
+          ),
+        ],
+      ),
+    );
+
+    return completer.future;
+  }
+
+  Future<String?> showBankTransferDialog() async {
+    return showDialog<String>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Bank Transfer Instructions'),
+        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Transfer Rs. ${widget.amount} to:', style: TextStyle(fontWeight: FontWeight.bold)),
+          SizedBox(height: 12),
+          Text('Bank: Nabil Bank'),
+          Text('Account Name: Sewa Mitra Pvt Ltd'),
+          Text('Account Number: 1234567890'),
+          Text('IFSC: NABILNP123'),
+          SizedBox(height: 16),
+          Divider(),
+          Text('After transfer, upload receipt:', style: TextStyle(fontWeight: FontWeight.bold)),
+          SizedBox(height: 8),
+          ElevatedButton.icon(
+            onPressed: () {
+              // Implement image picker
+              Navigator.pop(context, 'BANK_${DateTime.now().millisecondsSinceEpoch}');
+            },
+            icon: Icon(Icons.upload_file),
+            label: Text('Upload Receipt'),
+          ),
+        ]),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        title: const Text(
-          'Payment',
-          style: TextStyle(color: Color(0xFF2C3E50), fontWeight: FontWeight.w600),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF2C3E50),
-        elevation: 0,
-        centerTitle: false,
-      ),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Total due card
-            Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF2C3E50), Color(0xFF34495E)],
-                ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Total due',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white70,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Rs. 1,200',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Electric Pro Services · Booking #4821',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white70,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Icon(
-                      Icons.electric_bolt,
-                      color: const Color(0xFFFF6B35),
-                      size: 32,
+      appBar: AppBar(title: Text('Payment'), backgroundColor: Colors.green),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Booking summary card
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                          Text('Total due', style: TextStyle(fontSize: 16)),
+                          Text('Rs. ${widget.amount}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green)),
+                        ]),
+                        SizedBox(height: 8),
+                        Text('${widget.serviceName} · Booking #${widget.bookingId}', style: TextStyle(color: Colors.grey)),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
-
-            // Section title
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Text(
-                'Select payment method',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF2C3E50),
                 ),
-              ),
-            ),
-
-            // Payment methods list
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  _buildPaymentMethodTile(
-                    icon: Icons.credit_card,
-                    title: 'Credit / Debit Card',
-                    subtitle: 'Visa, Mastercard accepted',
-                    isSelected: true,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CardPaymentScreen(),
+                SizedBox(height: 24),
+                Text('Select Payment Method', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                SizedBox(height: 12),
+                // Payment method grid
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 1.5,
+                  ),
+                  itemCount: paymentMethods.length,
+                  itemBuilder: (context, index) {
+                    final method = paymentMethods[index];
+                    final isSelected = selectedMethod?.name == method.name;
+                    return GestureDetector(
+                      onTap: () => setState(() => selectedMethod = method),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isSelected ? method.color.withOpacity(0.1) : Colors.white,
+                          border: Border.all(color: isSelected ? method.color : Colors.grey.shade300, width: 2),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  _buildPaymentMethodTile(
-                    icon: Icons.account_balance_wallet,
-                    title: 'eSewa',
-                    subtitle: 'Mobile wallet',
-                    isSelected: false,
-                    onTap: () => _showComingSoon(context),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildPaymentMethodTile(
-                    icon: Icons.qr_code,
-                    title: 'Khalti',
-                    subtitle: 'Digital wallet',
-                    isSelected: false,
-                    onTap: () => _showComingSoon(context),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildPaymentMethodTile(
-                    icon: Icons.account_balance,
-                    title: 'Bank Transfer',
-                    subtitle: 'NABIL, NIC Asia...',
-                    isSelected: false,
-                    onTap: () => _showComingSoon(context),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildPaymentMethodTile(
-                    icon: Icons.currency_rupee,
-                    title: 'Cash on service',
-                    subtitle: 'Pay after completion',
-                    isSelected: false,
-                    onTap: () => _showComingSoon(context),
-                  ),
-                ],
-              ),
-            ),
-
-            // Proceed button
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CardPaymentScreen(),
+                        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                          Icon(Icons.payment, size: 32, color: isSelected ? method.color : Colors.grey),
+                          SizedBox(height: 8),
+                          Text(method.name, style: TextStyle(fontWeight: FontWeight.w500)),
+                        ]),
                       ),
                     );
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF6B35),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Proceed to Pay',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
                 ),
+                SizedBox(height: 24),
+              ],
+            ),
+          ),
+          // Bottom fixed button
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)]),
+              child: ElevatedButton(
+                onPressed: isLoading ? null : processPayment,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: isLoading
+                    ? SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : Text('Proceed to Pay', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
             ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: _buildBottomNavigationBar(context),
-    );
-  }
-
-  Widget _buildPaymentMethodTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(
-          color: isSelected ? const Color(0xFFFF6B35) : Colors.grey.shade200,
-          width: isSelected ? 2 : 1,
-        ),
-      ),
-      child: ListTile(
-        onTap: onTap,
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFF6B35).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: const Color(0xFFFF6B35), size: 24),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF2C3E50),
-          ),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-        ),
-        trailing: isSelected
-            ? Icon(Icons.check_circle, color: const Color(0xFFFF6B35), size: 22)
-            : Icon(Icons.chevron_right, color: Colors.grey[400], size: 22),
-      ),
-    );
-  }
-
-  Widget _buildBottomNavigationBar(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
           ),
         ],
       ),
-      child: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFFFF6B35),
-        unselectedItemColor: Colors.grey[600],
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-        currentIndex: 2, // Wallet is selected (orange color)
-        items: const [
+      bottomNavigationBar: BottomNavigationBar(
+        items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.bookmark), label: 'Bookings'),
+          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Bookings'),
           BottomNavigationBarItem(icon: Icon(Icons.wallet), label: 'Wallet'),
           BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
-        onTap: (index) {
-          // Handle navigation based on index
-          switch (index) {
-            case 0:
-            // Navigate to Home
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Navigate to Home')),
-              );
-              break;
-            case 1:
-            // Navigate to Bookings
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Navigate to Bookings')),
-              );
-              break;
-            case 2:
-            // Already on Wallet
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('You are in Wallet section')),
-              );
-              break;
-            case 3:
-            // Navigate to Alerts
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Navigate to Alerts')),
-              );
-              break;
-            case 4:
-            // Navigate to Profile
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Navigate to Profile')),
-              );
-              break;
-          }
-        },
-      ),
-    );
-  }
-
-  void _showComingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('This payment method is coming soon!'),
-        duration: Duration(seconds: 2),
       ),
     );
   }

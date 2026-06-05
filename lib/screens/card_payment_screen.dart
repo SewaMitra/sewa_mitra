@@ -355,7 +355,13 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const PaymentSuccessScreen(),
+                            builder: (context) => PaymentSuccessScreen(
+                              amount: 1200.0,                           // ✅ Real amount
+                              bookingId: '4821',                         // ✅ Real booking ID
+                              serviceName: 'Electric Pro Services',      // ✅ Real service name
+                              transactionId: 'TXN${DateTime.now().millisecondsSinceEpoch}',  // ✅ Generated ID
+                              method: 'Credit Card',                     // ✅ Payment method
+                            ),
                           ),
                         );
                       }

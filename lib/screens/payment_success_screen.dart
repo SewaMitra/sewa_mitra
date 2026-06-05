@@ -1,195 +1,282 @@
 import 'package:flutter/material.dart';
-import 'payment_screen.dart';
+import 'package:intl/intl.dart';
 
 class PaymentSuccessScreen extends StatelessWidget {
-  const PaymentSuccessScreen({super.key});
+  final double amount;
+  final String bookingId;
+  final String serviceName;
+  final String transactionId;
+  final String method;
+
+  const PaymentSuccessScreen({
+    Key? key,
+    required this.amount,
+    required this.bookingId,
+    required this.serviceName,
+    required this.transactionId,
+    required this.method,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              const Spacer(flex: 1),
-
-              // Success icon
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF27AE60).withOpacity(0.1),
-                  shape: BoxShape.circle,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Success Animation
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.green.withOpacity(0.1),
+                  ),
+                  padding: const EdgeInsets.all(20),
+                  child: const Icon(
+                    Icons.check_circle,
+                    size: 80,
+                    color: Colors.green,
+                  ),
                 ),
-                child: Icon(
-                  Icons.check_circle,
-                  color: const Color(0xFF27AE60),
-                  size: 60,
-                ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-              // Success text
-              const Text(
-                'Payment successful!',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C3E50),
+                // Success Title
+                const Text(
+                  'Payment Successful!',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Booking confirmed',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
+                const SizedBox(height: 8),
+
+                // Amount and Method
+                Text(
+                  'Paid Rs. ${amount.toStringAsFixed(0)} via $method',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 32),
 
-              const SizedBox(height: 40),
+                // Transaction Details Card
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      _buildDetailRow(
+                        'Transaction ID',
+                        transactionId,
+                        Icons.receipt,
+                      ),
+                      const Divider(height: 24),
+                      _buildDetailRow(
+                        'Booking ID',
+                        '#$bookingId',
+                        Icons.bookmark,
+                      ),
+                      const Divider(height: 24),
+                      _buildDetailRow(
+                        'Service',
+                        serviceName,
+                        Icons.build,
+                      ),
+                      const Divider(height: 24),
+                      _buildDetailRow(
+                        'Date',
+                        DateFormat('dd MMM yyyy, hh:mm a').format(DateTime.now()),
+                        Icons.calendar_today,
+                      ),
+                      const Divider(height: 24),
+                      _buildDetailRow(
+                        'Payment Method',
+                        method,
+                        Icons.payment,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
 
-              // Booking details card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+                // Back to Home Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Navigate to home and remove all previous screens
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/home',
+                            (route) => false,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
                     ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    _buildDetailRow('Service', 'Electric Pro'),
-                    const Divider(height: 24, thickness: 1),
-                    _buildDetailRow('Booking ID', '#BK4821'),
-                    const Divider(height: 24, thickness: 1),
-                    _buildDetailRow('Method', 'Credit Card'),
-                    const Divider(height: 24, thickness: 1),
-                    _buildDetailRow('Date', '11 May 2026'),
-                    const Divider(height: 24, thickness: 1),
-                    _buildDetailRow('Total paid', 'Rs. 1,200', isBold: true),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // Action buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Receipt downloaded')),
-                        );
-                      },
-                      icon: const Icon(Icons.download),
-                      label: const Text('Download Receipt'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: BorderSide(color: const Color(0xFFFF6B35)),
-                        foregroundColor: const Color(0xFFFF6B35),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                    child: const Text(
+                      'Back to Home',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (context) => const PaymentScreen()),
-                              (route) => false,
-                        );
-                      },
-                      icon: const Icon(Icons.visibility),
-                      label: const Text('View booking details'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF6B35),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // View Invoice Button
+                TextButton(
+                  onPressed: () {
+                    _showInvoiceDialog(context);
+                  },
+                  child: const Text(
+                    'View Invoice',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontSize: 14,
                     ),
                   ),
-                ],
-              ),
-
-              const Spacer(flex: 1),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
-  Widget _buildDetailRow(String label, String value, {bool isBold = false}) {
+  Widget _buildDetailRow(String label, String value, IconData icon) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 15,
-            color: Colors.grey[600],
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.green.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
           ),
+          child: Icon(icon, size: 20, color: Colors.green),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
-            color: isBold ? const Color(0xFF2C3E50) : const Color(0xFF2C3E50),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  Widget _buildBottomNavigationBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+  void _showInvoiceDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.receipt,
+                  size: 50,
+                  color: Colors.green,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Invoice',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Divider(height: 24),
+                _buildInvoiceRow('Booking ID', '#${bookingId ?? 'N/A'}'),
+                _buildInvoiceRow('Service', serviceName ?? 'N/A'),
+                _buildInvoiceRow('Amount', 'Rs. ${amount.toStringAsFixed(0)}'),
+                _buildInvoiceRow('Payment Method', method ?? 'Unknown'),
+                _buildInvoiceRow('Transaction ID', transactionId ?? 'N/A'),
+                _buildInvoiceRow('Date', DateFormat('dd MMM yyyy').format(DateTime.now())),
+                const Divider(height: 24),
+                _buildInvoiceRow(
+                    'Total Paid', 'Rs. ${amount.toStringAsFixed(0)}', isTotal: true
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildInvoiceRow(String label, String value, {bool isTotal = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: isTotal ? 16 : 14,
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+              color: isTotal ? Colors.black : Colors.grey.shade600,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: isTotal ? 16 : 14,
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
+              color: isTotal ? Colors.green : Colors.black87,
+            ),
           ),
         ],
-      ),
-      child: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFFFF6B35),
-        unselectedItemColor: Colors.grey[600],
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.bookmark), label: 'Bookings'),
-          BottomNavigationBarItem(icon: Icon(Icons.wallet), label: 'Wallet'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-        currentIndex: 0,
-        onTap: (index) {
-          // Handle navigation
-        },
       ),
     );
   }
