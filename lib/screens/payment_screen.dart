@@ -19,129 +19,6 @@ class PaymentScreen extends StatefulWidget {
 
 class _PaymentScreenState extends State<PaymentScreen> {
   String? selectedMethod;
-  bool isLoading = false;
-
-  void payWithESewa() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('eSewa Payment'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Amount: Rs. ${widget.amount.toStringAsFixed(0)}'),
-            const SizedBox(height: 16),
-            const TextField(
-              decoration: InputDecoration(labelText: 'eSewa PIN'),
-              obscureText: true,
-              keyboardType: TextInputType.number,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _completePayment('eSewa');
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            child: Text('Pay Rs. ${widget.amount.toStringAsFixed(0)}'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void payWithKhalti() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Khalti Payment'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Amount: Rs. ${widget.amount.toStringAsFixed(0)}'),
-            const SizedBox(height: 16),
-            const TextField(
-              decoration: InputDecoration(labelText: 'Khalti MPIN'),
-              obscureText: true,
-              keyboardType: TextInputType.number,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _completePayment('Khalti');
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
-            child: Text('Pay Rs. ${widget.amount.toStringAsFixed(0)}'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void showBankTransfer() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Bank Transfer'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Transfer Rs. ${widget.amount.toStringAsFixed(0)} to:'),
-            const SizedBox(height: 12),
-            const Text('Bank: Nabil Bank', style: TextStyle(fontWeight: FontWeight.bold)),
-            const Text('Account: Sewa Mitra Pvt Ltd'),
-            const Text('Number: 1234567890'),
-            const Text('IFSC: NABILNP123'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _completePayment('Bank Transfer');
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-            child: const Text('I Have Transferred'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _completePayment(String method) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PaymentSuccessScreen(
-          amount: widget.amount,
-          bookingId: widget.bookingId,
-          serviceName: widget.serviceName,
-          transactionId: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-          method: method,
-        ),
-      ),
-    );
-  }
 
   void processPayment() {
     if (selectedMethod == null) {
@@ -151,28 +28,34 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return;
     }
 
-    switch (selectedMethod) {
-      case 'eSewa':
-        payWithESewa();
-        break;
-      case 'Khalti':
-        payWithKhalti();
-        break;
-      case 'Bank Transfer':
-        showBankTransfer();
-        break;
-      case 'Cash on Service':
-        _completePayment('Cash on Service');
-        break;
-      case 'Credit Card':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const CardPaymentScreen()),
-        );
-        break;
-      default:
-        _completePayment(selectedMethod!);
+    // Handle Credit Card navigation
+    if (selectedMethod == 'Credit Card') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CardPaymentScreen(
+            amount: widget.amount,
+            bookingId: widget.bookingId,
+            serviceName: widget.serviceName,
+          ),
+        ),
+      );
+      return;
     }
+
+    // For other methods, show success directly
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentSuccessScreen(
+          amount: widget.amount,
+          bookingId: widget.bookingId,
+          serviceName: widget.serviceName,
+          transactionId: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+          method: selectedMethod!,
+        ),
+      ),
+    );
   }
 
   @override
@@ -184,20 +67,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
+        centerTitle: false,
       ),
       body: Column(
         children: [
-          // Payment details card - EXACT same as before
+          // Payment details card - EXACT match to screenshot
           Container(
+            width: double.infinity,
             padding: const EdgeInsets.all(20),
-            color: Colors.green.shade50,
+            color: const Color(0xFFE8F5E9),  // Light green background
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Total due', style: TextStyle(fontSize: 14, color: Colors.grey)),
-                const SizedBox(height: 8),
+                const Text(
+                  'Total due',
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+                const SizedBox(height: 4),
                 Text(
                   'Rs. ${widget.amount.toStringAsFixed(0)}',
-                  style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.green),
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF4CAF50),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -208,80 +101,96 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
 
-          // Payment methods list - EXACT same as before
+          // Payment methods list
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                const Text('Select payment method', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
+                const Text(
+                  'Select payment method',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
 
-                // Credit/Debit Card
-                _buildPaymentMethod(
+                // Credit / Debit Card
+                _buildMethodCard(
                   icon: Icons.credit_card,
                   title: 'Credit / Debit Card',
                   subtitle: 'Visa, Mastercard accepted',
-                  methodName: 'Credit Card',
+                  value: 'Credit Card',
                 ),
 
                 // eSewa
-                _buildPaymentMethod(
+                _buildMethodCard(
                   icon: Icons.wallet,
                   title: 'eSewa',
                   subtitle: 'Mobile wallet',
-                  methodName: 'eSewa',
+                  value: 'eSewa',
                 ),
 
                 // Khalti
-                _buildPaymentMethod(
+                _buildMethodCard(
                   icon: Icons.account_balance_wallet,
                   title: 'Khalti',
                   subtitle: 'Digital wallet',
-                  methodName: 'Khalti',
+                  value: 'Khalti',
                 ),
 
                 // Bank Transfer
-                _buildPaymentMethod(
+                _buildMethodCard(
                   icon: Icons.account_balance,
                   title: 'Bank Transfer',
                   subtitle: 'NABIL, NIC Asia...',
-                  methodName: 'Bank Transfer',
+                  value: 'Bank Transfer',
                 ),
 
-                // Cash on Service
-                _buildPaymentMethod(
+                // Cash on service
+                _buildMethodCard(
                   icon: Icons.money,
                   title: 'Cash on service',
                   subtitle: 'Pay after completion',
-                  methodName: 'Cash on Service',
+                  value: 'Cash on Service',
                 ),
               ],
             ),
           ),
 
-          // Pay button - EXACT same as before
+          // Proceed to Pay button
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, -2),
+                ),
+              ],
             ),
             child: ElevatedButton(
-              onPressed: isLoading ? null : processPayment,
+              onPressed: processPayment,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                backgroundColor: const Color(0xFF4CAF50),
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-              child: isLoading
-                  ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white))
-                  : const Text('Proceed to Pay', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Proceed to Pay',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
             ),
           ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        selectedItemColor: const Color(0xFF4CAF50),
+        unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Bookings'),
@@ -293,37 +202,68 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Widget _buildPaymentMethod({
+  Widget _buildMethodCard({
     required IconData icon,
     required String title,
     required String subtitle,
-    required String methodName,
+    required String value,
   }) {
-    final isSelected = selectedMethod == methodName;
+    final isSelected = selectedMethod == value;
+
     return GestureDetector(
-      onTap: () => setState(() => selectedMethod = methodName),
+      onTap: () {
+        setState(() {
+          selectedMethod = value;
+        });
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.green.shade50 : Colors.white,
-          border: Border.all(color: isSelected ? Colors.green : Colors.grey.shade300),
+          color: isSelected ? const Color(0xFFE8F5E9) : Colors.white,
+          border: Border.all(
+            color: isSelected ? const Color(0xFF4CAF50) : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
+          ),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 30, color: isSelected ? Colors.green : Colors.grey),
-            const SizedBox(width: 12),
+            Icon(
+              icon,
+              size: 28,
+              color: isSelected ? const Color(0xFF4CAF50) : Colors.grey.shade600,
+            ),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: isSelected ? Colors.green : Colors.black)),
-                  Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      color: isSelected ? const Color(0xFF4CAF50) : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
                 ],
               ),
             ),
-            if (isSelected) const Icon(Icons.check_circle, color: Colors.green, size: 24),
+            if (isSelected)
+              const Icon(
+                Icons.check_circle,
+                color: Color(0xFF4CAF50),
+                size: 24,
+              ),
           ],
         ),
       ),
