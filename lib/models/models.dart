@@ -55,9 +55,29 @@ class Booking {
 }
 
 class BookingData {
-  static final List<Booking> bookings = [];
+  static final ValueNotifier<List<Booking>> bookingsNotifier = ValueNotifier<List<Booking>>([]);
+
+  static List<Booking> get bookings => bookingsNotifier.value;
 
   static void addBooking(Booking booking) {
-    bookings.add(booking);
+    bookingsNotifier.value = [...bookingsNotifier.value, booking];
+  }
+}
+
+class WalletData {
+  static final ValueNotifier<double> balanceNotifier = ValueNotifier<double>(2450.0);
+
+  static double get balance => balanceNotifier.value;
+
+  static void addMoney(double amount) {
+    balanceNotifier.value += amount;
+  }
+
+  static bool subtractMoney(double amount) {
+    if (balanceNotifier.value >= amount) {
+      balanceNotifier.value -= amount;
+      return true;
+    }
+    return false;
   }
 }

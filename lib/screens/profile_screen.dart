@@ -6,222 +6,6 @@ import 'transaction_screen.dart';
 import 'user_management_screen.dart';
 import 'provider_management_screen.dart';
 
-// ════════════════════════════════════════════════════════════════════════════
-//  WALLET SCREEN (unchanged)
-// ════════════════════════════════════════════════════════════════════════════
-class WalletScreen extends StatelessWidget {
-  const WalletScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.green.shade50, // Test color
-      appBar: AppBar(
-        title: const Text(
-          'Wallet',
-          style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.darkText),
-        ),
-        backgroundColor: Colors.green.shade50,
-        elevation: 0,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppTheme.primaryOrange, Color(0xFFEA580C)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text('Available Balance',
-                      style: TextStyle(color: Colors.white70, fontSize: 14)),
-                  SizedBox(height: 8),
-                  Text('Rs. 2,450',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 32,
-                          fontWeight: FontWeight.w800)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                _WalletAction(
-                  icon: Icons.add_circle_rounded,
-                  label: 'Add Money',
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Add Money feature coming soon')),
-                    );
-                  },
-                ),
-                const SizedBox(width: 12),
-                _WalletAction(
-                  icon: Icons.send_rounded,
-                  label: 'Send Money',
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Send Money feature coming soon')),
-                    );
-                  },
-                ),
-                const SizedBox(width: 12),
-                _WalletAction(
-                    icon: Icons.history_rounded,
-                    label: 'History',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const TransactionScreen()),
-                      );
-                    }),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _WalletAction extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-  const _WalletAction({required this.icon, required this.label, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            color: AppTheme.white,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.cardShadow,
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Icon(icon, color: AppTheme.primaryOrange, size: 28),
-              const SizedBox(height: 6),
-              Text(label,
-                  style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.darkText)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-//  NOTIFICATIONS SCREEN (unchanged)
-// ════════════════════════════════════════════════════════════════════════════
-class NotificationsScreen extends StatelessWidget {
-  const NotificationsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.bgColor,
-      appBar: AppBar(
-        title: const Text('Notifications',
-            style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.darkText)),
-        backgroundColor: AppTheme.bgColor,
-        elevation: 0,
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(20),
-        itemCount: 3,
-        itemBuilder: (context, index) {
-          final titles = ['Booking Confirmed', 'Service Completed', 'Special Offer'];
-          final subtitles = [
-            'Electric Pro will arrive at 10:00 AM',
-            'Rate your recent cleaning service',
-            '20% off on AC Repair this weekend'
-          ];
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppTheme.white,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                    color: AppTheme.cardShadow,
-                    blurRadius: 8,
-                    offset: const Offset(0, 2)),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: AppTheme.lightOrange,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.notifications_rounded,
-                      color: AppTheme.primaryOrange, size: 22),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(titles[index],
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                              color: AppTheme.darkText)),
-                      const SizedBox(height: 4),
-                      Text(subtitles[index],
-                          style: const TextStyle(
-                              fontSize: 12, color: AppTheme.greyText)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-//  PROFILE SCREEN — fully working
-// ════════════════════════════════════════════════════════════════════════════
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -259,7 +43,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context); // Close dialog
+              Navigator.pop(context);
               Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Logged out successfully')),
@@ -386,7 +170,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-// ── Reusable tile matching your existing style ───────────────────────────────
 class _ProfileTile extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -429,9 +212,6 @@ class _ProfileTile extends StatelessWidget {
   }
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-//  EDIT PROFILE SCREEN
-// ════════════════════════════════════════════════════════════════════════════
 class EditProfileScreen extends StatefulWidget {
   final String name;
   final String email;
@@ -573,9 +353,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-//  MY ADDRESSES SCREEN
-// ════════════════════════════════════════════════════════════════════════════
 class MyAddressesScreen extends StatefulWidget {
   const MyAddressesScreen({super.key});
 
@@ -669,9 +446,6 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
   }
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-//  PAYMENT METHODS SCREEN
-// ════════════════════════════════════════════════════════════════════════════
 class PaymentMethodsScreen extends StatefulWidget {
   const PaymentMethodsScreen({super.key});
 
@@ -748,9 +522,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   }
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-//  SETTINGS SCREEN
-// ════════════════════════════════════════════════════════════════════════════
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -862,9 +633,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-//  HELP & SUPPORT SCREEN
-// ════════════════════════════════════════════════════════════════════════════
 class HelpSupportScreen extends StatelessWidget {
   const HelpSupportScreen({super.key});
 
@@ -992,9 +760,6 @@ class HelpSupportScreen extends StatelessWidget {
   }
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-//  SHARED APP BAR HELPER
-// ════════════════════════════════════════════════════════════════════════════
 AppBar _buildAppBar(String title) => AppBar(
       backgroundColor: AppTheme.bgColor,
       elevation: 0,

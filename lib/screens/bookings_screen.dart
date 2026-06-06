@@ -7,8 +7,6 @@ class BookingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bookings = BookingData.bookings;
-
     return Scaffold(
       backgroundColor: AppTheme.bgColor,
       appBar: AppBar(
@@ -23,13 +21,18 @@ class BookingsScreen extends StatelessWidget {
         backgroundColor: AppTheme.bgColor,
         elevation: 0,
       ),
-      body: bookings.isEmpty
-          ? _buildEmptyState()
-          : ListView.builder(
-        padding: const EdgeInsets.all(20),
-        itemCount: bookings.length,
-        itemBuilder: (context, index) {
-          return _buildBookingCard(bookings[index]);
+      body: ValueListenableBuilder<List<Booking>>(
+        valueListenable: BookingData.bookingsNotifier,
+        builder: (context, bookings, child) {
+          return bookings.isEmpty
+              ? _buildEmptyState()
+              : ListView.builder(
+            padding: const EdgeInsets.all(20),
+            itemCount: bookings.length,
+            itemBuilder: (context, index) {
+              return _buildBookingCard(bookings[index]);
+            },
+          );
         },
       ),
     );
@@ -79,11 +82,11 @@ class BookingsScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppTheme.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: AppTheme.cardShadow,
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),

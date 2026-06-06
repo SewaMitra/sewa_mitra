@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'bookings_screen.dart';
-import 'other_screens.dart';
+import 'wallet_screen.dart';
+import 'notifications.dart';
+import 'profile_screen.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
 
 class MainContainer extends StatefulWidget {
@@ -14,8 +16,14 @@ class MainContainer extends StatefulWidget {
 class _MainContainerState extends State<MainContainer> {
   int _currentIndex = 0;
 
-  // Global keys to maintain navigation state within tabs
-  final GlobalKey<NavigatorState> _homeNavKey = GlobalKey<NavigatorState>();
+  // Global keys to maintain navigation state within each tab
+  final List<GlobalKey<NavigatorState>> _navKeys = [
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -23,30 +31,35 @@ class _MainContainerState extends State<MainContainer> {
       body: IndexedStack(
         index: _currentIndex,
         children: [
-          Navigator(
-            key: _homeNavKey,
-            onGenerateRoute: (route) => MaterialPageRoute(
-              settings: route,
-              builder: (context) => const HomeScreen(),
-            ),
-          ),
-          const BookingsScreen(),
-          const WalletScreen(),
-          const NotificationsScreen(),
-          const ProfileScreen(),
+          _buildTabNavigator(0, const HomeScreen()),
+          _buildTabNavigator(1, const BookingsScreen()),
+          _buildTabNavigator(2, const WalletScreen()),
+          _buildTabNavigator(3, const NotificationsScreen()),
+          _buildTabNavigator(4, const ProfileScreen()),
         ],
       ),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
         onTap: (index) {
-          if (_currentIndex == index && index == 0) {
-            // Pop to root if Home tab is re-tapped
-            _homeNavKey.currentState?.popUntil((r) => r.isFirst);
+          if (_currentIndex == index) {
+            // Pop to root if the same tab is re-tapped
+            _navKeys[index].currentState?.popUntil((r) => r.isFirst);
+          } else {
+            setState(() {
+              _currentIndex = index;
+            });
           }
-          setState(() {
-            _currentIndex = index;
-          });
         },
+      ),
+    );
+  }
+
+  Widget _buildTabNavigator(int index, Widget child) {
+    return Navigator(
+      key: _navKeys[index],
+      onGenerateRoute: (route) => MaterialPageRoute(
+        settings: route,
+        builder: (context) => child,
       ),
     );
   }

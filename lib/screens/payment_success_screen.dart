@@ -22,19 +22,6 @@ class PaymentSuccessScreen extends StatelessWidget {
     required this.bookingTime,
   }) : super(key: key);
 
-  void _addBookingToData() {
-    final newBooking = Booking(
-      id: bookingId,
-      serviceName: serviceName,
-      providerName: 'Professional Provider', // Placeholder
-      date: bookingDate,
-      time: bookingTime,
-      address: 'Kathmandu, Nepal', // Placeholder
-      amount: amount,
-    );
-    BookingData.addBooking(newBooking);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -131,7 +118,6 @@ class PaymentSuccessScreen extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      _addBookingToData();
                       // Navigate to home and remove all previous screens
                       Navigator.pushNamedAndRemoveUntil(
                         context,

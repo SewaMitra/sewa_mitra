@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'payment_success_screen.dart';
+import '../models/models.dart';
 
 class CardPaymentScreen extends StatefulWidget {
   final double amount;
@@ -38,6 +39,18 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
 
   void processPayment() {
     if (_formKey.currentState!.validate()) {
+      // Add booking data before navigating
+      final newBooking = Booking(
+        id: widget.bookingId,
+        serviceName: widget.serviceName,
+        providerName: 'Professional Provider',
+        date: widget.date,
+        time: widget.time,
+        address: 'Kathmandu, Nepal',
+        amount: widget.amount,
+      );
+      BookingData.addBooking(newBooking);
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'payment_success_screen.dart';
 import 'card_payment_screen.dart';
+import '../models/models.dart';
 
 class PaymentScreen extends StatefulWidget {
   final double amount;
@@ -47,6 +48,27 @@ class _PaymentScreenState extends State<PaymentScreen> {
       );
       return;
     }
+
+    if (selectedMethod == 'Wallet Balance') {
+      if (!WalletData.subtractMoney(widget.amount)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Insufficient Wallet Balance')),
+        );
+        return;
+      }
+    }
+
+    // Add booking data before navigating
+    final newBooking = Booking(
+      id: widget.bookingId,
+      serviceName: widget.serviceName,
+      providerName: 'Professional Provider',
+      date: widget.date,
+      time: widget.time,
+      address: 'Kathmandu, Nepal',
+      amount: widget.amount,
+    );
+    BookingData.addBooking(newBooking);
 
     Navigator.pushReplacement(
       context,
@@ -142,6 +164,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
+                _buildMethodCard(
+                  icon: Icons.account_balance_wallet,
+                  title: 'Wallet Balance',
+                  subtitle: 'Pay using your Sewa Mitra wallet',
+                  value: 'Wallet Balance',
+                  primaryOrange: primaryOrange,
+                ),
                 _buildMethodCard(
                   icon: Icons.credit_card,
                   title: 'Credit / Debit Card',

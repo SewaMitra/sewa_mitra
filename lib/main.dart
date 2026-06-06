@@ -4,7 +4,7 @@ import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/main_container.dart';
 import 'screens/home_screen.dart';
-import 'screens/other_screens.dart';
+import 'screens/notifications.dart';
 import 'screens/bookings_screen.dart';
 import 'screens/forgot_password_screen.dart';
 
