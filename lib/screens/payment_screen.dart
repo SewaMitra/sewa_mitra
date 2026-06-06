@@ -6,11 +6,15 @@ class PaymentScreen extends StatefulWidget {
   final double amount;
   final String bookingId;
   final String serviceName;
+  final String date;
+  final String time;
 
   const PaymentScreen({
     required this.amount,
     required this.bookingId,
     required this.serviceName,
+    required this.date,
+    required this.time,
   });
 
   @override
@@ -36,6 +40,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
             amount: widget.amount,
             bookingId: widget.bookingId,
             serviceName: widget.serviceName,
+            date: widget.date,
+            time: widget.time,
           ),
         ),
       );
@@ -51,6 +57,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
           serviceName: widget.serviceName,
           transactionId: 'TXN${DateTime.now().millisecondsSinceEpoch}',
           method: selectedMethod!,
+          bookingDate: widget.date,
+          bookingTime: widget.time,
         ),
       ),
     );

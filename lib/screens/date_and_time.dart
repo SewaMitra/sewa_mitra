@@ -243,10 +243,12 @@ class _DateTimeSelectionScreenState extends State<DateTimeSelectionScreen> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const PaymentScreen(
+                                      builder: (context) => PaymentScreen(
                                         amount: 500,
-                                        bookingId: 'BK-20260511',
+                                        bookingId: 'BK-${DateTime.now().millisecondsSinceEpoch}',
                                         serviceName: 'Electrical Repair',
+                                        date: DateFormat('dd MMM yyyy').format(_selectedDate!),
+                                        time: _selectedTime!,
                                       ),
                                     ),
                                   );

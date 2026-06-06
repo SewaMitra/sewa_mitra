@@ -8,6 +8,8 @@ class PaymentSuccessScreen extends StatelessWidget {
   final String serviceName;
   final String transactionId;
   final String method;
+  final String bookingDate;
+  final String bookingTime;
 
   const PaymentSuccessScreen({
     Key? key,
@@ -16,6 +18,8 @@ class PaymentSuccessScreen extends StatelessWidget {
     required this.serviceName,
     required this.transactionId,
     required this.method,
+    required this.bookingDate,
+    required this.bookingTime,
   }) : super(key: key);
 
   void _addBookingToData() {
@@ -23,8 +27,8 @@ class PaymentSuccessScreen extends StatelessWidget {
       id: bookingId,
       serviceName: serviceName,
       providerName: 'Professional Provider', // Placeholder
-      date: DateFormat('dd MMM yyyy').format(DateTime.now()),
-      time: DateFormat('hh:mm a').format(DateTime.now()),
+      date: bookingDate,
+      time: bookingTime,
       address: 'Kathmandu, Nepal', // Placeholder
       amount: amount,
     );

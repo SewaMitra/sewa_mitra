@@ -5,11 +5,15 @@ class CardPaymentScreen extends StatefulWidget {
   final double amount;
   final String bookingId;
   final String serviceName;
+  final String date;
+  final String time;
 
   const CardPaymentScreen({
     required this.amount,
     required this.bookingId,
     required this.serviceName,
+    required this.date,
+    required this.time,
   });
 
   @override
@@ -43,6 +47,8 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
             serviceName: widget.serviceName,
             transactionId: 'TXN${DateTime.now().millisecondsSinceEpoch}',
             method: 'Credit Card',
+            bookingDate: widget.date,
+            bookingTime: widget.time,
           ),
         ),
       );
