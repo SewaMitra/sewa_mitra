@@ -14,24 +14,35 @@ class MainContainer extends StatefulWidget {
 class _MainContainerState extends State<MainContainer> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const BookingsScreen(),
-    const WalletScreen(),
-    const NotificationsScreen(),
-    const ProfileScreen(),
-  ];
+  // Global keys to maintain navigation state within tabs
+  final GlobalKey<NavigatorState> _homeNavKey = GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: _screens,
+        children: [
+          Navigator(
+            key: _homeNavKey,
+            onGenerateRoute: (route) => MaterialPageRoute(
+              settings: route,
+              builder: (context) => const HomeScreen(),
+            ),
+          ),
+          const BookingsScreen(),
+          const WalletScreen(),
+          const NotificationsScreen(),
+          const ProfileScreen(),
+        ],
       ),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
         onTap: (index) {
+          if (_currentIndex == index && index == 0) {
+            // Pop to root if Home tab is re-tapped
+            _homeNavKey.currentState?.popUntil((r) => r.isFirst);
+          }
           setState(() {
             _currentIndex = index;
           });

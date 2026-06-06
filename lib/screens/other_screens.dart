@@ -15,7 +15,7 @@ class WalletScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.bgColor,
+      backgroundColor: Colors.green.shade50, // Test color
       appBar: AppBar(
         title: const Text(
           'Wallet',
@@ -24,7 +24,7 @@ class WalletScreen extends StatelessWidget {
               fontWeight: FontWeight.w700,
               color: AppTheme.darkText),
         ),
-        backgroundColor: AppTheme.bgColor,
+        backgroundColor: Colors.green.shade50,
         elevation: 0,
       ),
       body: Padding(

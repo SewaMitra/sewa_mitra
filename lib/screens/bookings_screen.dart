@@ -7,7 +7,7 @@ class BookingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.bgColor,
+      backgroundColor: Colors.blue.shade50, // Test color
       appBar: AppBar(
         title: const Text(
           'My Bookings',
@@ -17,7 +17,7 @@ class BookingsScreen extends StatelessWidget {
             color: AppTheme.darkText,
           ),
         ),
-        backgroundColor: AppTheme.bgColor,
+        backgroundColor: Colors.blue.shade50,
         elevation: 0,
       ),
       body: Center(
