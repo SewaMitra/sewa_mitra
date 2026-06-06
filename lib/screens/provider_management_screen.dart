@@ -21,7 +21,6 @@ class ProviderManagementScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Stats Cards
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -64,8 +63,6 @@ class ProviderManagementScreen extends StatelessWidget {
                 icon: Icons.block,
               ),
             ),
-
-            // Providers List Title
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               child: Text(
@@ -77,8 +74,6 @@ class ProviderManagementScreen extends StatelessWidget {
                 ),
               ),
             ),
-
-            // Provider Cards
             _buildProviderCard(
               context: context,
               name: 'Electric Pro Services',
@@ -87,7 +82,7 @@ class ProviderManagementScreen extends StatelessWidget {
               jobs: 120,
               status: 'Active',
               statusColor: const Color(0xFF27AE60),
-              // price: null,
+              startingPrice: null,
             ),
             const SizedBox(height: 12),
             _buildProviderCard(
@@ -144,6 +139,18 @@ class ProviderManagementScreen extends StatelessWidget {
               statusColor: const Color(0xFF27AE60),
               startingPrice: 600,
             ),
+            const SizedBox(height: 12),
+            _buildProviderCard(
+              context: context,
+              name: 'Tech Repair Pros',
+              category: 'Electronics',
+              rating: 4.9,
+              reviews: 45,
+              status: 'Pending',
+              statusColor: const Color(0xFFFF6B35),
+              startingPrice: 500,
+            ),
+
             const SizedBox(height: 20),
           ],
         ),
@@ -451,7 +458,7 @@ class ProviderManagementScreen extends StatelessWidget {
   void _showSuspendDialog(BuildContext context, String providerName) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Suspend Provider'),
         content: Text('Are you sure you want to suspend $providerName?'),
@@ -481,7 +488,7 @@ class ProviderManagementScreen extends StatelessWidget {
   void _showApproveDialog(BuildContext context, String providerName) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Approve Provider'),
         content: Text('Approve $providerName to start offering services?'),
@@ -511,7 +518,7 @@ class ProviderManagementScreen extends StatelessWidget {
   void _showRejectDialog(BuildContext context, String providerName) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Reject Application'),
         content: Text('Reject $providerName\'s application?'),
@@ -541,7 +548,7 @@ class ProviderManagementScreen extends StatelessWidget {
   void _showRestoreDialog(BuildContext context, String providerName) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Restore Provider'),
         content: Text('Restore $providerName to active status?'),
@@ -571,7 +578,7 @@ class ProviderManagementScreen extends StatelessWidget {
   void _showProviderDetails(BuildContext context, String name, String category, double rating) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(name),
         content: Column(
@@ -635,13 +642,13 @@ class ProviderManagementScreen extends StatelessWidget {
           ),
         ],
       ),
-      child:  BottomNavigationBar(
+      child: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         selectedItemColor: Color(0xFFFF6B35),
         unselectedItemColor: Colors.grey,
         selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
-        currentIndex: 4, // Profile selected for admin
+        currentIndex: 4,
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.bookmark), label: 'Bookings'),
