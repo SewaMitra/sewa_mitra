@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../models/models.dart';
 
 class PaymentSuccessScreen extends StatelessWidget {
   final double amount;
@@ -16,6 +17,19 @@ class PaymentSuccessScreen extends StatelessWidget {
     required this.transactionId,
     required this.method,
   }) : super(key: key);
+
+  void _addBookingToData() {
+    final newBooking = Booking(
+      id: bookingId,
+      serviceName: serviceName,
+      providerName: 'Professional Provider', // Placeholder
+      date: DateFormat('dd MMM yyyy').format(DateTime.now()),
+      time: DateFormat('hh:mm a').format(DateTime.now()),
+      address: 'Kathmandu, Nepal', // Placeholder
+      amount: amount,
+    );
+    BookingData.addBooking(newBooking);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,6 +127,7 @@ class PaymentSuccessScreen extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
+                      _addBookingToData();
                       // Navigate to home and remove all previous screens
                       Navigator.pushNamedAndRemoveUntil(
                         context,
