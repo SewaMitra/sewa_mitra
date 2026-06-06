@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'join_provider_screen.dart';
+import 'earning_screen.dart';
+import 'transaction_screen.dart';
+import 'user_management_screen.dart';
+import 'provider_management_screen.dart';
 
 // ════════════════════════════════════════════════════════════════════════════
 //  WALLET SCREEN (unchanged)
@@ -54,11 +59,36 @@ class WalletScreen extends StatelessWidget {
             const SizedBox(height: 24),
             Row(
               children: [
-                _WalletAction(icon: Icons.add_circle_rounded, label: 'Add Money'),
+                _WalletAction(
+                  icon: Icons.add_circle_rounded,
+                  label: 'Add Money',
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Add Money feature coming soon')),
+                    );
+                  },
+                ),
                 const SizedBox(width: 12),
-                _WalletAction(icon: Icons.send_rounded, label: 'Send Money'),
+                _WalletAction(
+                  icon: Icons.send_rounded,
+                  label: 'Send Money',
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Send Money feature coming soon')),
+                    );
+                  },
+                ),
                 const SizedBox(width: 12),
-                _WalletAction(icon: Icons.history_rounded, label: 'History'),
+                _WalletAction(
+                    icon: Icons.history_rounded,
+                    label: 'History',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const TransactionScreen()),
+                      );
+                    }),
               ],
             ),
           ],
@@ -71,34 +101,38 @@ class WalletScreen extends StatelessWidget {
 class _WalletAction extends StatelessWidget {
   final IconData icon;
   final String label;
-  const _WalletAction({required this.icon, required this.label});
+  final VoidCallback? onTap;
+  const _WalletAction({required this.icon, required this.label, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: AppTheme.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.cardShadow,
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: AppTheme.primaryOrange, size: 28),
-            const SizedBox(height: 6),
-            Text(label,
-                style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: AppTheme.darkText)),
-          ],
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: AppTheme.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.cardShadow,
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Icon(icon, color: AppTheme.primaryOrange, size: 28),
+              const SizedBox(height: 6),
+              Text(label,
+                  style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.darkText)),
+            ],
+          ),
         ),
       ),
     );
@@ -225,7 +259,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(context); // Close dialog
+              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Logged out successfully')),
               );
@@ -279,10 +314,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               _ProfileTile(
+                icon: Icons.work_rounded,
+                label: 'Join as Provider',
+                onTap: () => _navigateTo(const JoinProviderScreen()),
+              ),
+              _ProfileTile(
                 icon: Icons.location_on_rounded,
                 label: 'My Addresses',
                 onTap: () => _navigateTo(const MyAddressesScreen()),
               ),
+              _ProfileTile(
+                icon: Icons.history_rounded,
+                label: 'Transactions',
+                onTap: () => _navigateTo(const TransactionScreen()),
+              ),
+              _ProfileTile(
+                icon: Icons.analytics_outlined,
+                label: 'My Earnings',
+                onTap: () => _navigateTo(const EarningScreen()),
+              ),
+              const Divider(height: 32, thickness: 1, indent: 20, endIndent: 20),
+              const Padding(
+                padding: EdgeInsets.only(left: 24, bottom: 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('Admin Tools',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.greyText)),
+                ),
+              ),
+              _ProfileTile(
+                icon: Icons.group_outlined,
+                label: 'User Management',
+                onTap: () => _navigateTo(const UserManagementScreen()),
+              ),
+              _ProfileTile(
+                icon: Icons.engineering_outlined,
+                label: 'Provider Management',
+                onTap: () => _navigateTo(const ProviderManagementScreen()),
+              ),
+              const SizedBox(height: 10),
               _ProfileTile(
                 icon: Icons.payment_rounded,
                 label: 'Payment Methods',

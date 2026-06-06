@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class ServiceCategory {
   final String name;
   final String iconPath;

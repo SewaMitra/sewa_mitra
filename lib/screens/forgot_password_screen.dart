@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'verify_screen.dart';
 
 class ForgotPasswordScreen extends StatelessWidget {
   const ForgotPasswordScreen({super.key});
@@ -53,7 +54,12 @@ class ForgotPasswordScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const VerifyScreen()),
+                    );
+                  },
                   child: const Text(
                     'Send reset code',
                     style: TextStyle(fontWeight: FontWeight.bold),

@@ -208,21 +208,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        elevation: 8,
-        selectedItemColor: primaryOrange,
-        unselectedItemColor: Colors.grey,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Bookings'),
-          BottomNavigationBarItem(icon: Icon(Icons.wallet), label: 'Wallet'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-      ),
     );
   }
 

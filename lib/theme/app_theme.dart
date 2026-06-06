@@ -18,7 +18,6 @@ class AppTheme {
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryOrange,
         primary: primaryOrange,
-        background: bgColor,
       ),
       scaffoldBackgroundColor: bgColor,
       textTheme: GoogleFonts.poppinsTextTheme(),

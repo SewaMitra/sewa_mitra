@@ -116,7 +116,7 @@ class PaymentSuccessScreen extends StatelessWidget {
                       // Navigate to home and remove all previous screens
                       Navigator.pushNamedAndRemoveUntil(
                         context,
-                        '/home',
+                        '/main',
                             (route) => false,
                       );
                     },
