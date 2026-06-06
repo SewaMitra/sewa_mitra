@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'register_screen.dart';
 import 'screens/payment_screen.dart';
 
 void main() {
@@ -19,6 +20,12 @@ class MyApp extends StatelessWidget {
       ),
       home: const PaymentScreen(),
       debugShowCheckedModeBanner: false,
+    );
+  }
+}
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: RegisterScreen(),
     );
   }
 }
