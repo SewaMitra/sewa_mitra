@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/payment_screen.dart';
+import 'book_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,11 +13,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Sewa Mitra',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: 'Roboto',
+        fontFamily: 'Inter',
+        colorScheme: const ColorScheme.light(
+          primary: Color(0xFFFF8A00),
+          secondary: Color(0xFFFF8A00),
+        ),
         useMaterial3: true,
       ),
-      home: const PaymentScreen(),
+      home: const BookServiceScreen(),
       debugShowCheckedModeBanner: false,
     );
   }

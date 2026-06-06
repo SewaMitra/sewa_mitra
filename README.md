@@ -1,85 +1,21 @@
-# 🏠 Home Services App — Flutter
+<<<<<<< HEAD
+# sewa_mitrabookings
+=======
+# sewa_mitra
+>>>>>>> 01f70b6d3fea397bff5d844b5a531ab365723797
 
-A pixel-perfect Flutter implementation of the Home Services UI for Android.
+A new Flutter project.
 
-## 📁 Project Structure
+## Getting Started
 
-```
-lib/
-├── main.dart                    ← App entry point + bottom navigation
-├── theme/
-│   └── app_theme.dart           ← Colors, typography, ThemeData
-├── models/
-│   └── models.dart              ← Data models
-├── screens/
-│   ├── home_screen.dart         ← Main home screen (matches the design)
-│   ├── bookings_screen.dart     ← Bookings tab
-│   └── other_screens.dart      ← Wallet, Notifications, Profile
-└── widgets/
-    ├── category_card.dart       ← Service category grid card
-    ├── provider_card.dart       ← Provider list card
-    └── custom_bottom_nav_bar.dart ← Animated bottom navigation
-```
+This project is a starting point for a Flutter application.
 
-## 🚀 Setup in Android Studio
+A few resources to get you started if this is your first Flutter project:
 
-### 1. Create a new Flutter project
-```
-File → New → New Flutter Project → Flutter Application
-```
-Name it `home_services_app`
+- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
+- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
 
-### 2. Replace files
-Copy all files from this project into your Flutter project, replacing defaults.
-
-### 3. Add dependencies to `pubspec.yaml`
-```yaml
-dependencies:
-  flutter:
-    sdk: flutter
-  cupertino_icons: ^1.0.6
-  google_fonts: ^6.1.0
-```
-
-### 4. Install packages
-```bash
-flutter pub get
-```
-
-### 5. Run the app
-```bash
-flutter run
-```
-Or press the ▶ Run button in Android Studio.
-
-## 🎨 Design Details
-
-- **Primary Color**: Orange `#F97316`
-- **Font**: Poppins (via google_fonts)
-- **Theme**: Light, card-based layout
-- **Bottom Nav**: 5 tabs — Home, Bookings, Wallet, Notifications, Profile
-
-## 📦 Dependencies
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| google_fonts | ^6.1.0 | Poppins font |
-| cupertino_icons | ^1.0.6 | iOS-style icons |
-
-## 📱 Features Implemented
-
-- ✅ Location header with dropdown
-- ✅ Notification bell
-- ✅ Search bar with settings button
-- ✅ Hero banner card
-- ✅ 3×2 category grid (Electricity, Plumber, Cleaning, Laundry, AC Repair, More)
-- ✅ Popular Providers list with ratings & pricing
-- ✅ Animated bottom navigation bar (5 tabs)
-- ✅ Wallet screen with balance card
-- ✅ Notifications screen
-- ✅ Profile screen with menu items
-- ✅ Bookings screen
-
-## 💡 To Add Real Images
-
-Replace the icon containers in `home_screen.dart` with actual `Image.asset()` or `Image.network()` widgets. Add your assets to the `assets/images/` folder and declare them in `pubspec.yaml`.
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.

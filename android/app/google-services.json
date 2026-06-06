@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "514977217370",
+    "project_id": "sewa-mitra-a3c18",
+    "storage_bucket": "sewa-mitra-a3c18.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:514977217370:android:90686bf2af16841b1ed163",
+        "android_client_info": {
+          "package_name": "com.example.sewa_mitra"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_13r6JPhu8uBTX9xkonR3HgNqBL75T9k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyDwC_EQo5Yb2X7ntbvvIIUit3x1cINie5Q</string>
+	<key>GCM_SENDER_ID</key>
+	<string>514977217370</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.sewaMitra</string>
+	<key>PROJECT_ID</key>
+	<string>sewa-mitra-a3c18</string>
+	<key>STORAGE_BUCKET</key>
+	<string>sewa-mitra-a3c18.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:514977217370:ios:a7ee001ed90de9541ed163</string>
+</dict>
+</plist>
