@@ -1,12 +1,5 @@
 import 'package:flutter/material.dart';
 import 'screens/payment_screen.dart';
-import 'screens/card_payment_screen.dart';
-import 'screens/payment_success_screen.dart';
-import 'screens/earning_screen.dart';
-import 'screens/join_provider_screen.dart';
-import 'screens/provider_management_screen.dart';
-import 'screens/transaction_screen.dart';
-import 'screens/user_management_screen.dart';
 
 void main() {
   runApp(const MyApp());
