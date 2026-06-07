@@ -19,23 +19,24 @@ class LoginScreen extends StatelessWidget {
               const SizedBox(height: 30),
 
               Container(
-                height: 70,
-                width: 70,
+                height: 80,
+                width: 80,
                 decoration: BoxDecoration(
-                  color: Colors.orange,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Icon(
-                  Icons.build,
-                  color: Colors.white,
-                  size: 35,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.asset(
+                    'assets/logo.jpeg',
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
 
               const SizedBox(height: 20),
 
               const Text(
-                'WElCOME',
+                'Welcome',
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
@@ -47,7 +48,9 @@ class LoginScreen extends StatelessWidget {
               const Text(
                 'Sign in to book trusted\nprofessionals near you',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.blueGrey),
+                style: TextStyle(
+                  color: Colors.blueGrey,
+                ),
               ),
 
               const SizedBox(height: 35),
@@ -108,8 +111,10 @@ class LoginScreen extends StatelessWidget {
                     ),
                   ),
                   child: const Text(
-                    'Sign in',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    'Sign In',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -123,7 +128,9 @@ class LoginScreen extends StatelessWidget {
                     padding: EdgeInsets.symmetric(horizontal: 12),
                     child: Text(
                       'or continue with',
-                      style: TextStyle(color: Colors.blueGrey),
+                      style: TextStyle(
+                        color: Colors.blueGrey,
+                      ),
                     ),
                   ),
                   Expanded(child: Divider()),
@@ -136,7 +143,15 @@ class LoginScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 54,
                 child: OutlinedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Google Login Coming Soon',
+                        ),
+                      ),
+                    );
+                  },
                   icon: const Text(
                     'G',
                     style: TextStyle(
@@ -147,12 +162,16 @@ class LoginScreen extends StatelessWidget {
                   ),
                   label: const Text(
                     'Login with Google',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.black87,
                     backgroundColor: Colors.white,
-                    side: BorderSide(color: Colors.grey.shade300),
+                    side: BorderSide(
+                      color: Colors.grey.shade300,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -164,7 +183,9 @@ class LoginScreen extends StatelessWidget {
 
               TextButton(
                 onPressed: () {},
-                child: const Text("Don't have an account? Create one"),
+                child: const Text(
+                  "Don't have an account? Create one",
+                ),
               ),
             ],
           ),
