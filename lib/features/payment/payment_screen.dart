@@ -109,36 +109,45 @@ class _PaymentScreenState extends State<PaymentScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Payment details section - EXACT match
+          // Payment details section - with grey background and white text
           Padding(
             padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Total due',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[800], // Dark grey background
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Total due',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white70, // Light white/grey for label
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Rs. ${widget.amount.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                  const SizedBox(height: 4),
+                  Text(
+                    'Rs. ${widget.amount.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white, // White text for amount
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${widget.serviceName} · Booking #${widget.bookingId}',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey,
+                  const SizedBox(height: 8),
+                  Text(
+                    '${widget.serviceName} · Booking #${widget.bookingId}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Colors.white60, // Light white for subtitle
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
@@ -279,7 +288,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             Icon(
               icon,
               size: 28,
-              color: isSelected ? primaryOrange : Colors.grey.shade600,
+              color: primaryOrange,  // All icons always orange
             ),
             const SizedBox(width: 16),
             Expanded(
