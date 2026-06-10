@@ -18,16 +18,22 @@ class _FilterSortScreenState extends State<FilterSortScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.close, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text("Filter & Sort",
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+      ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Filter & Sort",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-
-              const SizedBox(height: 20),
               const Text("CATEGORY", style: TextStyle(fontWeight: FontWeight.bold)),
 
               Wrap(

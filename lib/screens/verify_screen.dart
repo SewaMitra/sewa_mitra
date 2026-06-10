@@ -112,7 +112,9 @@ class VerifyScreen extends StatelessWidget {
                   ),
                 ),
 
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pushNamedAndRemoveUntil(context, '/main', (route) => false);
+                },
 
                 child: const Text(
                   'Verify & Continue',
