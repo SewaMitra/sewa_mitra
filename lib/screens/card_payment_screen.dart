@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'payment_success_screen.dart';
+import '../models/models.dart';
 
 class CardPaymentScreen extends StatefulWidget {
   final double amount;
   final String bookingId;
   final String serviceName;
+  final String date;
+  final String time;
 
   const CardPaymentScreen({
     required this.amount,
     required this.bookingId,
     required this.serviceName,
+    required this.date,
+    required this.time,
   });
 
   @override
@@ -34,6 +39,18 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
 
   void processPayment() {
     if (_formKey.currentState!.validate()) {
+      // Add booking data before navigating
+      final newBooking = Booking(
+        id: widget.bookingId,
+        serviceName: widget.serviceName,
+        providerName: 'Professional Provider',
+        date: widget.date,
+        time: widget.time,
+        address: 'Kathmandu, Nepal',
+        amount: widget.amount,
+      );
+      BookingData.addBooking(newBooking);
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -43,6 +60,8 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
             serviceName: widget.serviceName,
             transactionId: 'TXN${DateTime.now().millisecondsSinceEpoch}',
             method: 'Credit Card',
+            bookingDate: widget.date,
+            bookingTime: widget.time,
           ),
         ),
       );

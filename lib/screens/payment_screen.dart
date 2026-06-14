@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'payment_success_screen.dart';
 import 'card_payment_screen.dart';
+import '../models/models.dart';
 
 class PaymentScreen extends StatefulWidget {
   final double amount;
   final String bookingId;
   final String serviceName;
+  final String date;
+  final String time;
 
   const PaymentScreen({
     required this.amount,
     required this.bookingId,
     required this.serviceName,
+    required this.date,
+    required this.time,
   });
 
   @override
@@ -36,11 +41,34 @@ class _PaymentScreenState extends State<PaymentScreen> {
             amount: widget.amount,
             bookingId: widget.bookingId,
             serviceName: widget.serviceName,
+            date: widget.date,
+            time: widget.time,
           ),
         ),
       );
       return;
     }
+
+    if (selectedMethod == 'Wallet Balance') {
+      if (!WalletData.subtractMoney(widget.amount)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Insufficient Wallet Balance')),
+        );
+        return;
+      }
+    }
+
+    // Add booking data before navigating
+    final newBooking = Booking(
+      id: widget.bookingId,
+      serviceName: widget.serviceName,
+      providerName: 'Professional Provider',
+      date: widget.date,
+      time: widget.time,
+      address: 'Kathmandu, Nepal',
+      amount: widget.amount,
+    );
+    BookingData.addBooking(newBooking);
 
     Navigator.pushReplacement(
       context,
@@ -51,6 +79,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
           serviceName: widget.serviceName,
           transactionId: 'TXN${DateTime.now().millisecondsSinceEpoch}',
           method: selectedMethod!,
+          bookingDate: widget.date,
+          bookingTime: widget.time,
         ),
       ),
     );
@@ -144,6 +174,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
                 _buildMethodCard(
+                  icon: Icons.account_balance_wallet,
+                  title: 'Wallet Balance',
+                  subtitle: 'Pay using your Sewa Mitra wallet',
+                  value: 'Wallet Balance',
+                  primaryOrange: primaryOrange,
+                ),
+                _buildMethodCard(
                   icon: Icons.credit_card,
                   title: 'Credit / Debit Card',
                   subtitle: 'Visa, Mastercard accepted',
@@ -215,21 +252,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ),
           ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        elevation: 8,
-        selectedItemColor: primaryOrange,
-        unselectedItemColor: Colors.grey,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Bookings'),
-          BottomNavigationBarItem(icon: Icon(Icons.wallet), label: 'Wallet'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );

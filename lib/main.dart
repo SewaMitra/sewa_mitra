@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'screens/payment_screen.dart';
+=======
+import 'screens/splash_screen.dart';
+import 'screens/login_screen.dart';
+import 'screens/register_screen.dart';
+import 'screens/main_container.dart';
+import 'screens/notifications.dart';
+import 'screens/forgot_password_screen.dart';
+>>>>>>> b02644be389f2b5c289f5a37794edec6b811bdfc
 
 void main() {
   runApp(const MyApp());
@@ -11,23 +20,25 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-
       title: 'Sewa Mitra',
-      theme: ThemeData(
-        primaryColor: const Color(0xFFFF6B35),
-        fontFamily: 'Roboto',
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFFF6B35),
-          primary: const Color(0xFFFF6B35),
-        ),
-      ),
-      home: const PaymentScreen(
-        amount: 1200.0,
-        bookingId: '4821',
-        serviceName: 'Electric Pro Services',
-      ), // Change this to test different screens
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        fontFamily: 'Inter',
+        colorScheme: const ColorScheme.light(
+          primary: Color(0xFFFF8A00),
+          secondary: Color(0xFFFF8A00),
+        ),
+        useMaterial3: true,
+      ),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const SplashScreen(nextScreen: LoginScreen()),
+        '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
+        '/main': (context) => const MainContainer(),
+        '/notifications': (context) => const NotificationsScreen(),
+        '/forgot_password': (context) => const ForgotPasswordScreen(),
+      },
     );
   }
 }

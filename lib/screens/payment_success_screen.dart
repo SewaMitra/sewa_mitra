@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../models/models.dart';
 
 class PaymentSuccessScreen extends StatelessWidget {
   final double amount;
@@ -7,6 +8,8 @@ class PaymentSuccessScreen extends StatelessWidget {
   final String serviceName;
   final String transactionId;
   final String method;
+  final String bookingDate;
+  final String bookingTime;
 
   const PaymentSuccessScreen({
     Key? key,
@@ -15,6 +18,8 @@ class PaymentSuccessScreen extends StatelessWidget {
     required this.serviceName,
     required this.transactionId,
     required this.method,
+    required this.bookingDate,
+    required this.bookingTime,
   }) : super(key: key);
 
   @override
@@ -116,7 +121,7 @@ class PaymentSuccessScreen extends StatelessWidget {
                       // Navigate to home and remove all previous screens
                       Navigator.pushNamedAndRemoveUntil(
                         context,
-                        '/home',
+                        '/main',
                             (route) => false,
                       );
                     },
