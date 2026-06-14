@@ -73,7 +73,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ),
         backgroundColor: Colors.white,
         elevation: 0,
-        centerTitle: false,
+        centerTitle: true,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
