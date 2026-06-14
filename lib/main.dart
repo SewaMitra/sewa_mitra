@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
-import 'screens/splash_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
-import 'screens/main_container.dart';
-import 'screens/notifications.dart';
 import 'screens/forgot_password_screen.dart';
+import 'screens/verify_screen.dart';
+// import 'screens/main_screen.dart'; // uncomment when you have this screen
 
-void main() {
-  runApp(const MyApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  runApp(const SewaMitraApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class SewaMitraApp extends StatelessWidget {
+  const SewaMitraApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -19,21 +26,16 @@ class MyApp extends StatelessWidget {
       title: 'Sewa Mitra',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        fontFamily: 'Inter',
-        colorScheme: const ColorScheme.light(
-          primary: Color(0xFFFF8A00),
-          secondary: Color(0xFFFF8A00),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
         useMaterial3: true,
       ),
-      initialRoute: '/',
+      initialRoute: '/login',
       routes: {
-        '/': (context) => const SplashScreen(nextScreen: LoginScreen()),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
-        '/main': (context) => const MainContainer(),
-        '/notifications': (context) => const NotificationsScreen(),
         '/forgot_password': (context) => const ForgotPasswordScreen(),
+        '/verify': (context) => const VerifyScreen(),
+        // '/main': (context) => const MainScreen(),
       },
     );
   }

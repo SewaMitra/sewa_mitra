@@ -1,178 +1,167 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:sewa_mitra/screens/auth_service.dart';
 
-class VerifyScreen extends StatelessWidget {
+class VerifyScreen extends StatefulWidget {
   const VerifyScreen({super.key});
 
   @override
+  State<VerifyScreen> createState() => _VerifyScreenState();
+}
+
+class _VerifyScreenState extends State<VerifyScreen> {
+  Timer? _checkTimer;
+  bool _isResending = false;
+  String? _resendMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    // Poll every 4 seconds to check if the user clicked the link
+    _checkTimer = Timer.periodic(const Duration(seconds: 4), (_) async {
+      final verified = await AuthService.checkEmailVerified();
+      if (verified && mounted) {
+        _checkTimer?.cancel();
+        Navigator.pushReplacementNamed(context, '/main');
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _checkTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _resend() async {
+    setState(() {
+      _isResending = true;
+      _resendMessage = null;
+    });
+
+    final result = await AuthService.resendVerificationEmail();
+
+    if (!mounted) return;
+    setState(() {
+      _isResending = false;
+      _resendMessage = result.success
+          ? 'Verification email resent! Check your inbox.'
+          : result.errorMessage;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final email = AuthService.currentUser?.email ?? 'your email';
+
     return Scaffold(
       backgroundColor: const Color(0xfff6f8fb),
-
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Text('Verify your identity'),
+        title: const Text('Verify your email'),
+        automaticallyImplyLeading: false,
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(22),
-
         child: Column(
           children: [
+            const SizedBox(height: 60),
 
-            const SizedBox(height: 70),
-
-            Container(
-              height: 80,
-              width: 80,
-
-              decoration: BoxDecoration(
-                color: Colors.orange.shade100,
-                borderRadius: BorderRadius.circular(22),
-              ),
-
-              child: const Icon(
-                Icons.lock,
-                color: Colors.orange,
-                size: 40,
-              ),
-            ),
+            const Icon(Icons.email_outlined, color: Colors.orange, size: 80),
 
             const SizedBox(height: 25),
 
             const Text(
-              '2-Step verification',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
+              'Check your email',
+              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
 
-            const Text(
-              'We sent a 6-digit code to\n+977 98XXXXXXXX',
+            Text(
+              'We sent a verification link to\n$email\n\nClick the link to activate your account.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.blueGrey,
-                fontSize: 16,
-              ),
-            ),
-
-            const SizedBox(height: 35),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
-              children: List.generate(
-                6,
-                    (index) => SizedBox(
-                  width: 45,
-
-                  child: TextField(
-                    maxLength: 1,
-                    textAlign: TextAlign.center,
-
-                    decoration: InputDecoration(
-                      counterText: '',
-                      filled: true,
-                      fillColor: Colors.white,
-
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 25),
-
-            const Text(
-              'Resend code in 0:00',
-              style: TextStyle(
-                color: Colors.deepOrange,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(color: Colors.blueGrey, height: 1.6),
             ),
 
             const SizedBox(height: 30),
 
+            const CircularProgressIndicator(color: Colors.orange),
+
+            const SizedBox(height: 12),
+
+            const Text(
+              'Waiting for verification…',
+              style: TextStyle(color: Colors.blueGrey),
+            ),
+
+            const SizedBox(height: 40),
+
+            if (_resendMessage != null)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: _resendMessage!.contains('resent')
+                      ? Colors.green.shade50
+                      : Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _resendMessage!.contains('resent')
+                        ? Colors.green.shade200
+                        : Colors.red.shade200,
+                  ),
+                ),
+                child: Text(
+                  _resendMessage!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: _resendMessage!.contains('resent')
+                        ? Colors.green.shade800
+                        : Colors.red,
+                  ),
+                ),
+              ),
+
             SizedBox(
               width: double.infinity,
-              height: 55,
-
-              child: ElevatedButton(
-
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-
+              height: 54,
+              child: OutlinedButton(
+                onPressed: _isResending ? null : _resend,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.orange,
+                  side: const BorderSide(color: Colors.orange),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-
-                onPressed: () {
-                  Navigator.pushNamedAndRemoveUntil(context, '/main', (route) => false);
-                },
-
-                child: const Text(
-                  'Verify & Continue',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                child: _isResending
+                    ? const SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(
+                          color: Colors.orange,
+                          strokeWidth: 2.5,
+                        ),
+                      )
+                    : const Text(
+                        'Resend verification email',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 16),
 
-            Container(
-              padding: const EdgeInsets.all(18),
-
-              decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: Colors.green.shade200),
-              ),
-
-              child: Row(
-                children: [
-
-                  const Icon(
-                    Icons.security,
-                    color: Colors.green,
-                    size: 35,
-                  ),
-
-                  const SizedBox(width: 14),
-
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-
-                      children: const [
-
-                        Text(
-                          'Secure session token',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
-                          ),
-                        ),
-
-                        SizedBox(height: 5),
-
-                        Text(
-                          'Successful verification creates a secure JWT session.',
-                          style: TextStyle(
-                            color: Colors.green,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+            TextButton(
+              onPressed: () async {
+                await AuthService.signOut();
+                if (mounted) Navigator.pushReplacementNamed(context, '/login');
+              },
+              child: const Text(
+                'Use a different account',
+                style: TextStyle(color: Colors.blueGrey),
               ),
             ),
           ],

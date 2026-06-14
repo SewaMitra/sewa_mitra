@@ -1,7 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:sewa_mitra/screens/auth_service.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _signIn() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() => _errorMessage = 'Please enter your email and password.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final result = await AuthService.signIn(email: email, password: password);
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (result.success) {
+      Navigator.pushReplacementNamed(context, '/main');
+    } else {
+      setState(() => _errorMessage = result.errorMessage);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,10 +74,7 @@ class LoginScreen extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
-                  child: Image.asset(
-                    'assets/logo.jpeg',
-                    fit: BoxFit.cover,
-                  ),
+                  child: Image.asset('assets/logo.jpeg', fit: BoxFit.cover),
                 ),
               ),
 
@@ -40,10 +82,7 @@ class LoginScreen extends StatelessWidget {
 
               const Text(
                 'Welcome',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: 8),
@@ -51,14 +90,31 @@ class LoginScreen extends StatelessWidget {
               const Text(
                 'Sign in to book trusted\nprofessionals near you',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.blueGrey,
-                ),
+                style: TextStyle(color: Colors.blueGrey),
               ),
 
               const SizedBox(height: 35),
 
+              // Error banner
+              if (_errorMessage != null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Text(
+                    _errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
               TextField(
+                controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   labelText: 'Email address',
@@ -75,12 +131,21 @@ class LoginScreen extends StatelessWidget {
               const SizedBox(height: 18),
 
               TextField(
-                obscureText: true,
+                controller: _passwordController,
+                obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   labelText: 'Password',
                   hintText: 'Enter password',
                   prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: const Icon(Icons.visibility_outlined),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                  ),
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
@@ -94,17 +159,11 @@ class LoginScreen extends StatelessWidget {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/forgot_password',
-                    );
-                  },
+                  onPressed: () =>
+                      Navigator.pushNamed(context, '/forgot_password'),
                   child: const Text(
                     'Forgot Password?',
-                    style: TextStyle(
-                      color: Colors.orange,
-                    ),
+                    style: TextStyle(color: Colors.orange),
                   ),
                 ),
               ),
@@ -115,12 +174,7 @@ class LoginScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      '/main',
-                    );
-                  },
+                  onPressed: _isLoading ? null : _signIn,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
                     foregroundColor: Colors.white,
@@ -128,12 +182,19 @@ class LoginScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  child: const Text(
-                    'Sign In',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : const Text(
+                          'Sign In',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                 ),
               ),
 
@@ -146,9 +207,7 @@ class LoginScreen extends StatelessWidget {
                     padding: EdgeInsets.symmetric(horizontal: 12),
                     child: Text(
                       'or continue with',
-                      style: TextStyle(
-                        color: Colors.blueGrey,
-                      ),
+                      style: TextStyle(color: Colors.blueGrey),
                     ),
                   ),
                   Expanded(child: Divider()),
@@ -163,11 +222,7 @@ class LoginScreen extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Google Login Coming Soon',
-                        ),
-                      ),
+                      const SnackBar(content: Text('Google Login Coming Soon')),
                     );
                   },
                   icon: const Text(
@@ -180,16 +235,12 @@ class LoginScreen extends StatelessWidget {
                   ),
                   label: const Text(
                     'Login with Google',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   style: OutlinedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black87,
-                    side: BorderSide(
-                      color: Colors.grey.shade300,
-                    ),
+                    side: BorderSide(color: Colors.grey.shade300),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -202,16 +253,9 @@ class LoginScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    "Don't have an account? ",
-                  ),
+                  const Text("Don't have an account? "),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        '/register',
-                      );
-                    },
+                    onTap: () => Navigator.pushNamed(context, '/register'),
                     child: const Text(
                       'Sign Up',
                       style: TextStyle(

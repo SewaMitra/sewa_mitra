@@ -28,9 +28,15 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        return macos;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macOS - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.windows:
-        return windows;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for windows - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -43,40 +49,22 @@ class DefaultFirebaseOptions {
     }
   }
 
+  // ─── Matches google-services.json (project: sewa-mitra-a3c18) ───
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAgv8Bw6pQAKj2KDa6UIumacz02HIXLYKA',
-    appId: '1:1090348965383:android:6329b1f3d7f7b8ccc954a2',
-    messagingSenderId: '1090348965383',
-    projectId: 'sewamitra-162a9',
-    storageBucket: 'sewamitra-162a9.firebasestorage.app',
+    apiKey: 'AIzaSyD_13r6JPhu8uBTX9xkonR3HgNqBL75T9k',
+    appId: '1:514977217370:android:90686bf2af16841b1ed163',
+    messagingSenderId: '514977217370',
+    projectId: 'sewa-mitra-a3c18',
+    storageBucket: 'sewa-mitra-a3c18.firebasestorage.app',
   );
 
+  // ─── iOS: add your GoogleService-Info.plist and fill these in ───
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyB9vRcCSIuhinM-0_UDXESAVd7Djm_0Ljo',
-    appId: '1:1090348965383:ios:777be571916832f3c954a2',
-    messagingSenderId: '1090348965383',
-    projectId: 'sewamitra-162a9',
-    storageBucket: 'sewamitra-162a9.firebasestorage.app',
-    iosClientId: '1090348965383-roub60tkg8oesidikl57v4f87tgsqm1o.apps.googleusercontent.com',
+    apiKey: 'REPLACE_WITH_IOS_API_KEY',
+    appId: 'REPLACE_WITH_IOS_APP_ID',
+    messagingSenderId: '514977217370',
+    projectId: 'sewa-mitra-a3c18',
+    storageBucket: 'sewa-mitra-a3c18.firebasestorage.app',
     iosBundleId: 'com.example.sewaMitra',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyB9vRcCSIuhinM-0_UDXESAVd7Djm_0Ljo',
-    appId: '1:1090348965383:ios:777be571916832f3c954a2',
-    messagingSenderId: '1090348965383',
-    projectId: 'sewamitra-162a9',
-    storageBucket: 'sewamitra-162a9.firebasestorage.app',
-    iosBundleId: 'com.example.sewaMitra',
-  );
-
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyAJyQe9g3LDwu7PXdvi6E_uu19e2_djzkg',
-    appId: '1:1090348965383:web:44aa5da83b34feafc954a2',
-    messagingSenderId: '1090348965383',
-    projectId: 'sewamitra-162a9',
-    authDomain: 'sewamitra-162a9.firebaseapp.com',
-    storageBucket: 'sewamitra-162a9.firebasestorage.app',
-    measurementId: 'G-CVHJM9P6MQ',
   );
 }
