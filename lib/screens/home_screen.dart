@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/category_card.dart';
 import '../widgets/provider_card.dart';
+import 'book_service.dart';
+import 'filter_sort_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -14,15 +16,15 @@ class HomeScreen extends StatelessWidget {
   // Category icons (PNG, transparent background)
   static const Map<String, String> _categoryImages = {
     'Electricity':
-        'https://cdn-icons-png.flaticon.com/512/3114/3114829.png',
+    'https://cdn-icons-png.flaticon.com/512/3114/3114829.png',
     'Plumber':
-        'https://cdn-icons-png.flaticon.com/512/2933/2933245.png',
+    'https://cdn-icons-png.flaticon.com/512/2933/2933245.png',
     'Cleaning':
-        'https://cdn-icons-png.flaticon.com/512/3079/3079165.png',
+    'https://cdn-icons-png.flaticon.com/512/3079/3079165.png',
     'Laundry':
-        'https://cdn-icons-png.flaticon.com/512/2969/2969648.png',
+    'https://cdn-icons-png.flaticon.com/512/2969/2969648.png',
     'AC Repair':
-        'https://cdn-icons-png.flaticon.com/512/2516/2516697.png',
+    'https://cdn-icons-png.flaticon.com/512/2516/2516697.png',
   };
 
   // Provider avatar photos (professional workers)
@@ -45,7 +47,7 @@ class HomeScreen extends StatelessWidget {
               // ── Top Bar ──────────────────────────────────────────────
               Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -67,22 +69,27 @@ class HomeScreen extends StatelessWidget {
                             color: AppTheme.darkText, size: 20),
                       ],
                     ),
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: AppTheme.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.cardShadow,
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, '/notifications');
+                      },
+                      child: Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: AppTheme.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.cardShadow,
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(Icons.notifications_outlined,
+                            color: AppTheme.darkText, size: 22),
                       ),
-                      child: const Icon(Icons.notifications_outlined,
-                          color: AppTheme.darkText, size: 22),
                     ),
                   ],
                 ),
@@ -118,28 +125,37 @@ class HomeScreen extends StatelessWidget {
                                 color: AppTheme.primaryOrange, size: 22),
                             border: InputBorder.none,
                             contentPadding:
-                                EdgeInsets.symmetric(vertical: 14),
+                            EdgeInsets.symmetric(vertical: 14),
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryOrange,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.primaryOrange.withOpacity(0.3),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const FilterSortScreen()),
+                        );
+                      },
+                      child: Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryOrange,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.primaryOrange.withOpacity(0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(Icons.tune_rounded,
+                            color: AppTheme.white, size: 22),
                       ),
-                      child: const Icon(Icons.settings_rounded,
-                          color: AppTheme.white, size: 22),
                     ),
                   ],
                 ),
@@ -238,30 +254,30 @@ class HomeScreen extends StatelessWidget {
                                       color: AppTheme.primaryOrange,
                                       strokeWidth: 2,
                                       value: loadingProgress
-                                                  .expectedTotalBytes !=
-                                              null
+                                          .expectedTotalBytes !=
+                                          null
                                           ? loadingProgress
-                                                  .cumulativeBytesLoaded /
-                                              loadingProgress
-                                                  .expectedTotalBytes!
+                                          .cumulativeBytesLoaded /
+                                          loadingProgress
+                                              .expectedTotalBytes!
                                           : null,
                                     ),
                                   );
                                 },
                                 errorBuilder:
                                     (context, error, stackTrace) =>
-                                        Container(
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.lightOrange,
-                                    borderRadius:
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.lightOrange,
+                                        borderRadius:
                                         BorderRadius.circular(14),
-                                  ),
-                                  child: const Icon(
-                                    Icons.engineering_rounded,
-                                    color: AppTheme.primaryOrange,
-                                    size: 52,
-                                  ),
-                                ),
+                                      ),
+                                      child: const Icon(
+                                        Icons.engineering_rounded,
+                                        color: AppTheme.primaryOrange,
+                                        size: 52,
+                                      ),
+                                    ),
                               ),
                             ),
                           ],
@@ -322,14 +338,26 @@ class HomeScreen extends StatelessWidget {
                   childAspectRatio: 1.0,
                   children: [
                     ..._categoryImages.entries.map(
-                      (e) => CategoryCard(
+                          (e) => CategoryCard(
                         name: e.key,
                         icon: _buildNetworkCategoryIcon(e.value),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const BookServiceScreen()),
+                          );
+                        },
                       ),
                     ),
                     CategoryCard(
                       name: 'More',
                       icon: _buildMoreIcon(),
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('More categories coming soon!')),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -388,6 +416,13 @@ class HomeScreen extends StatelessWidget {
                         _providerAvatars[0],
                         AppTheme.primaryOrange,
                       ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const BookServiceScreen()),
+                        );
+                      },
                     ),
                     ProviderCard(
                       name: 'Clean Masters',
@@ -399,6 +434,13 @@ class HomeScreen extends StatelessWidget {
                         _providerAvatars[1],
                         const Color(0xFF8B5CF6),
                       ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const BookServiceScreen()),
+                        );
+                      },
                     ),
                     ProviderCard(
                       name: 'PlumbFix Nepal',
@@ -410,6 +452,13 @@ class HomeScreen extends StatelessWidget {
                         _providerAvatars[2],
                         const Color(0xFF06B6D4),
                       ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const BookServiceScreen()),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -443,7 +492,7 @@ class HomeScreen extends StatelessWidget {
                 color: AppTheme.primaryOrange,
                 value: loadingProgress.expectedTotalBytes != null
                     ? loadingProgress.cumulativeBytesLoaded /
-                        loadingProgress.expectedTotalBytes!
+                    loadingProgress.expectedTotalBytes!
                     : null,
               ),
             ),
@@ -494,7 +543,7 @@ class HomeScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
             3,
-            (i) => Container(
+                (i) => Container(
               margin: const EdgeInsets.symmetric(horizontal: 2.5),
               width: 7,
               height: 7,

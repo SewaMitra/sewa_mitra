@@ -1,43 +1,26 @@
 {
   "project_info": {
-    "project_number": "1090348965383",
-    "project_id": "sewamitra-162a9",
-    "storage_bucket": "sewamitra-162a9.firebasestorage.app"
+    "project_number": "514977217370",
+    "project_id": "sewa-mitra-a3c18",
+    "storage_bucket": "sewa-mitra-a3c18.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1090348965383:android:6329b1f3d7f7b8ccc954a2",
+        "mobilesdk_app_id": "1:514977217370:android:90686bf2af16841b1ed163",
         "android_client_info": {
           "package_name": "com.example.sewa_mitra"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "1090348965383-ufo5ftb59l4lhvp5flr7mn9tpumv5a6g.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAgv8Bw6pQAKj2KDa6UIumacz02HIXLYKA"
+          "current_key": "AIzaSyD_13r6JPhu8uBTX9xkonR3HgNqBL75T9k"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "1090348965383-ufo5ftb59l4lhvp5flr7mn9tpumv5a6g.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "1090348965383-roub60tkg8oesidikl57v4f87tgsqm1o.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.sewaMitra"
-              }
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

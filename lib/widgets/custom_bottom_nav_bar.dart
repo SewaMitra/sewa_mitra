@@ -36,43 +36,48 @@ class CustomBottomNavBar extends StatelessWidget {
           ),
         ],
       ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(items.length, (index) {
-              final isSelected = index == currentIndex;
-              return GestureDetector(
-                onTap: () => onTap(index),
-                behavior: HitTestBehavior.opaque,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppTheme.primaryOrange.withOpacity(0.1)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+      child: Container(
+        height: 75,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: List.generate(items.length, (index) {
+            final isSelected = index == currentIndex;
+            return Expanded(
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => onTap(index),
+                  splashColor: AppTheme.primaryOrange.withOpacity(0.05),
+                  highlightColor: Colors.transparent,
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        items[index].icon,
-                        color: isSelected
-                            ? AppTheme.primaryOrange
-                            : AppTheme.greyText,
-                        size: 24,
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppTheme.primaryOrange.withOpacity(0.1)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          items[index].icon,
+                          color: isSelected
+                              ? AppTheme.primaryOrange
+                              : AppTheme.greyText,
+                          size: 22,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         items[index].label,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 9,
                           fontWeight: isSelected
-                              ? FontWeight.w600
+                              ? FontWeight.w700
                               : FontWeight.w400,
                           color: isSelected
                               ? AppTheme.primaryOrange
@@ -82,9 +87,9 @@ class CustomBottomNavBar extends StatelessWidget {
                     ],
                   ),
                 ),
-              );
-            }),
-          ),
+              ),
+            );
+          }),
         ),
       ),
     );
