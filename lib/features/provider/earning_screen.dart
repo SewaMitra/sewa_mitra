@@ -65,7 +65,7 @@ class EarningScreen extends StatelessWidget {
                       Text(
                         'May 2026 - Provider View',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
                           color: Colors.white70,
                         ),
                       ),
