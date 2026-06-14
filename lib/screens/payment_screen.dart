@@ -266,7 +266,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             Icon(
               icon,
               size: 28,
-              color: primaryOrange,  // All icons always orangecu
+              color: primaryOrange,  // All icons always orange
             ),
             const SizedBox(width: 16),
             Expanded(
