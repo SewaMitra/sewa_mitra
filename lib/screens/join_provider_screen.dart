@@ -89,7 +89,7 @@ class _JoinProviderScreenState extends State<JoinProviderScreen> {
                     const Text(
                       'Become a Service Provider',
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 23,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
