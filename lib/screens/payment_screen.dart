@@ -1,316 +1,318 @@
 import 'package:flutter/material.dart';
+import 'payment_success_screen.dart';
 import 'card_payment_screen.dart';
+import '../models/models.dart';
 
-class PaymentScreen extends StatelessWidget {
-  const PaymentScreen({super.key});
+class PaymentScreen extends StatefulWidget {
+  final double amount;
+  final String bookingId;
+  final String serviceName;
+  final String date;
+  final String time;
+
+  const PaymentScreen({
+    required this.amount,
+    required this.bookingId,
+    required this.serviceName,
+    required this.date,
+    required this.time,
+  });
+
+  @override
+  State<PaymentScreen> createState() => _PaymentScreenState();
+}
+
+class _PaymentScreenState extends State<PaymentScreen> {
+  String? selectedMethod;
+
+  void processPayment() {
+    if (selectedMethod == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a payment method')),
+      );
+      return;
+    }
+
+    if (selectedMethod == 'Credit Card') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CardPaymentScreen(
+            amount: widget.amount,
+            bookingId: widget.bookingId,
+            serviceName: widget.serviceName,
+            date: widget.date,
+            time: widget.time,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (selectedMethod == 'Wallet Balance') {
+      if (!WalletData.subtractMoney(widget.amount)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Insufficient Wallet Balance')),
+        );
+        return;
+      }
+    }
+
+    // Add booking data before navigating
+    final newBooking = Booking(
+      id: widget.bookingId,
+      serviceName: widget.serviceName,
+      providerName: 'Professional Provider',
+      date: widget.date,
+      time: widget.time,
+      address: 'Kathmandu, Nepal',
+      amount: widget.amount,
+    );
+    BookingData.addBooking(newBooking);
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentSuccessScreen(
+          amount: widget.amount,
+          bookingId: widget.bookingId,
+          serviceName: widget.serviceName,
+          transactionId: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+          method: selectedMethod!,
+          bookingDate: widget.date,
+          bookingTime: widget.time,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final primaryOrange = const Color(0xFFFF6B35);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           'Payment',
-          style: TextStyle(color: Color(0xFF2C3E50), fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: Colors.black87,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF2C3E50),
         elevation: 0,
         centerTitle: false,
       ),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Total due card
-            Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF2C3E50), Color(0xFF34495E)],
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Payment details section - EXACT match
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Total due',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                const SizedBox(height: 4),
+                Text(
+                  'Rs. ${widget.amount.toStringAsFixed(0)}',
+                  style: const TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
                   ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Total due',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white70,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Rs. 1,200',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Electric Pro Services · Booking #4821',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white70,
-                        ),
-                      ),
-                    ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${widget.serviceName} · Booking #${widget.bookingId}',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey,
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Icon(
-                      Icons.electric_bolt,
-                      color: const Color(0xFFFF6B35),
-                      size: 32,
-                    ),
-                  ),
-                ],
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          // Select payment method text
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              'Select payment method',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
               ),
             ),
+          ),
 
-            // Section title
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Text(
-                'Select payment method',
+          const SizedBox(height: 16),
+
+          // Payment methods list
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                _buildMethodCard(
+                  icon: Icons.account_balance_wallet,
+                  title: 'Wallet Balance',
+                  subtitle: 'Pay using your Sewa Mitra wallet',
+                  value: 'Wallet Balance',
+                  primaryOrange: primaryOrange,
+                ),
+                _buildMethodCard(
+                  icon: Icons.credit_card,
+                  title: 'Credit / Debit Card',
+                  subtitle: 'Visa, Mastercard accepted',
+                  value: 'Credit Card',
+                  primaryOrange: primaryOrange,
+                ),
+                _buildMethodCard(
+                  icon: Icons.wallet,
+                  title: 'eSewa',
+                  subtitle: 'Mobile wallet',
+                  value: 'eSewa',
+                  primaryOrange: primaryOrange,
+                ),
+                _buildMethodCard(
+                  icon: Icons.account_balance_wallet,
+                  title: 'Khalti',
+                  subtitle: 'Digital wallet',
+                  value: 'Khalti',
+                  primaryOrange: primaryOrange,
+                ),
+                _buildMethodCard(
+                  icon: Icons.account_balance,
+                  title: 'Bank Transfer',
+                  subtitle: 'NABIL, NIC Asia...',
+                  value: 'Bank Transfer',
+                  primaryOrange: primaryOrange,
+                ),
+                _buildMethodCard(
+                  icon: Icons.money,
+                  title: 'Cash on service',
+                  subtitle: 'Pay after completion',
+                  value: 'Cash on Service',
+                  primaryOrange: primaryOrange,
+                ),
+              ],
+            ),
+          ),
+
+          // Proceed to Pay button
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            child: ElevatedButton(
+              onPressed: processPayment,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryOrange,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 52),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                'Proceed to Pay',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF2C3E50),
                 ),
               ),
             ),
-
-            // Payment methods list
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  _buildPaymentMethodTile(
-                    icon: Icons.credit_card,
-                    title: 'Credit / Debit Card',
-                    subtitle: 'Visa, Mastercard accepted',
-                    isSelected: true,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CardPaymentScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  _buildPaymentMethodTile(
-                    icon: Icons.account_balance_wallet,
-                    title: 'eSewa',
-                    subtitle: 'Mobile wallet',
-                    isSelected: false,
-                    onTap: () => _showComingSoon(context),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildPaymentMethodTile(
-                    icon: Icons.qr_code,
-                    title: 'Khalti',
-                    subtitle: 'Digital wallet',
-                    isSelected: false,
-                    onTap: () => _showComingSoon(context),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildPaymentMethodTile(
-                    icon: Icons.account_balance,
-                    title: 'Bank Transfer',
-                    subtitle: 'NABIL, NIC Asia...',
-                    isSelected: false,
-                    onTap: () => _showComingSoon(context),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildPaymentMethodTile(
-                    icon: Icons.currency_rupee,
-                    title: 'Cash on service',
-                    subtitle: 'Pay after completion',
-                    isSelected: false,
-                    onTap: () => _showComingSoon(context),
-                  ),
-                ],
-              ),
-            ),
-
-            // Proceed button
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CardPaymentScreen(),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF6B35),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Proceed to Pay',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(context),
     );
   }
 
-  Widget _buildPaymentMethodTile({
+  Widget _buildMethodCard({
     required IconData icon,
     required String title,
     required String subtitle,
-    required bool isSelected,
-    required VoidCallback onTap,
+    required String value,
+    required Color primaryOrange,
   }) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(
-          color: isSelected ? const Color(0xFFFF6B35) : Colors.grey.shade200,
-          width: isSelected ? 2 : 1,
-        ),
-      ),
-      child: ListTile(
-        onTap: onTap,
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFF6B35).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: const Color(0xFFFF6B35), size: 24),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF2C3E50),
-          ),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-        ),
-        trailing: isSelected
-            ? Icon(Icons.check_circle, color: const Color(0xFFFF6B35), size: 22)
-            : Icon(Icons.chevron_right, color: Colors.grey[400], size: 22),
-      ),
-    );
-  }
+    final isSelected = selectedMethod == value;
 
-  Widget _buildBottomNavigationBar(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedMethod = value;
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isSelected ? primaryOrange.withOpacity(0.08) : Colors.white,
+          border: Border.all(
+            color: isSelected ? primaryOrange : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
           ),
-        ],
-      ),
-      child: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFFFF6B35),
-        unselectedItemColor: Colors.grey[600],
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-        currentIndex: 2, // Wallet is selected (orange color)
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.bookmark), label: 'Bookings'),
-          BottomNavigationBarItem(icon: Icon(Icons.wallet), label: 'Wallet'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-        onTap: (index) {
-          // Handle navigation based on index
-          switch (index) {
-            case 0:
-            // Navigate to Home
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Navigate to Home')),
-              );
-              break;
-            case 1:
-            // Navigate to Bookings
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Navigate to Bookings')),
-              );
-              break;
-            case 2:
-            // Already on Wallet
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('You are in Wallet section')),
-              );
-              break;
-            case 3:
-            // Navigate to Alerts
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Navigate to Alerts')),
-              );
-              break;
-            case 4:
-            // Navigate to Profile
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Navigate to Profile')),
-              );
-              break;
-          }
-        },
-      ),
-    );
-  }
-
-  void _showComingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('This payment method is coming soon!'),
-        duration: Duration(seconds: 2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 28,
+              color: isSelected ? primaryOrange : Colors.grey.shade600,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      color: isSelected ? primaryOrange : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                Icons.check_circle,
+                color: primaryOrange,
+                size: 24,
+              ),
+          ],
+        ),
       ),
     );
   }

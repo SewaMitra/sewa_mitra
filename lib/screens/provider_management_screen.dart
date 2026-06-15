@@ -21,7 +21,6 @@ class ProviderManagementScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Stats Cards
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -64,8 +63,6 @@ class ProviderManagementScreen extends StatelessWidget {
                 icon: Icons.block,
               ),
             ),
-
-            // Providers List Title
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               child: Text(
@@ -77,19 +74,19 @@ class ProviderManagementScreen extends StatelessWidget {
                 ),
               ),
             ),
-
-            // Provider Cards
             _buildProviderCard(
+              context: context,
               name: 'Electric Pro Services',
               category: 'Electrical',
               rating: 4.8,
               jobs: 120,
               status: 'Active',
               statusColor: const Color(0xFF27AE60),
-              price: null,
+              startingPrice: null,
             ),
             const SizedBox(height: 12),
             _buildProviderCard(
+              context: context,
               name: 'Quick Fix Plumbing',
               category: 'Plumber',
               rating: 4.6,
@@ -100,6 +97,7 @@ class ProviderManagementScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildProviderCard(
+              context: context,
               name: 'Sparkle Clean Services',
               category: 'Cleaning',
               rating: 4.5,
@@ -110,6 +108,7 @@ class ProviderManagementScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildProviderCard(
+              context: context,
               name: 'Arctic Cool AC Repair',
               category: 'AC Repair',
               rating: 4.7,
@@ -120,6 +119,7 @@ class ProviderManagementScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildProviderCard(
+              context: context,
               name: 'Smart Home Solutions',
               category: 'Smart Devices',
               rating: 4.9,
@@ -130,6 +130,7 @@ class ProviderManagementScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildProviderCard(
+              context: context,
               name: 'Garden Experts',
               category: 'Gardening',
               rating: 4.4,
@@ -138,11 +139,22 @@ class ProviderManagementScreen extends StatelessWidget {
               statusColor: const Color(0xFF27AE60),
               startingPrice: 600,
             ),
+            const SizedBox(height: 12),
+            _buildProviderCard(
+              context: context,
+              name: 'Tech Repair Pros',
+              category: 'Electronics',
+              rating: 4.9,
+              reviews: 45,
+              status: 'Pending',
+              statusColor: const Color(0xFFFF6B35),
+              startingPrice: 500,
+            ),
+
             const SizedBox(height: 20),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
@@ -199,6 +211,7 @@ class ProviderManagementScreen extends StatelessWidget {
   }
 
   Widget _buildProviderCard({
+    required BuildContext context,
     required String name,
     required String category,
     required double rating,
@@ -444,7 +457,7 @@ class ProviderManagementScreen extends StatelessWidget {
   void _showSuspendDialog(BuildContext context, String providerName) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Suspend Provider'),
         content: Text('Are you sure you want to suspend $providerName?'),
@@ -474,7 +487,7 @@ class ProviderManagementScreen extends StatelessWidget {
   void _showApproveDialog(BuildContext context, String providerName) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Approve Provider'),
         content: Text('Approve $providerName to start offering services?'),
@@ -504,7 +517,7 @@ class ProviderManagementScreen extends StatelessWidget {
   void _showRejectDialog(BuildContext context, String providerName) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Reject Application'),
         content: Text('Reject $providerName\'s application?'),
@@ -534,7 +547,7 @@ class ProviderManagementScreen extends StatelessWidget {
   void _showRestoreDialog(BuildContext context, String providerName) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Restore Provider'),
         content: Text('Restore $providerName to active status?'),
@@ -564,7 +577,7 @@ class ProviderManagementScreen extends StatelessWidget {
   void _showProviderDetails(BuildContext context, String name, String category, double rating) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(name),
         content: Column(
@@ -613,36 +626,6 @@ class ProviderManagementScreen extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildBottomNavigationBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: const BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: Color(0xFFFF6B35),
-        unselectedItemColor: Colors.grey,
-        selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
-        currentIndex: 4, // Profile selected for admin
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.bookmark), label: 'Bookings'),
-          BottomNavigationBarItem(icon: Icon(Icons.wallet), label: 'Wallet'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Notifications'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-      ),
     );
   }
 }

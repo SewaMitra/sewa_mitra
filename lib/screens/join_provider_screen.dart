@@ -222,6 +222,9 @@ class _JoinProviderScreenState extends State<JoinProviderScreen> {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your phone number';
                         }
+                        if (value.length < 10) {
+                          return 'Please enter a valid phone number';
+                        }
                         return null;
                       },
                     ),
@@ -252,7 +255,6 @@ class _JoinProviderScreenState extends State<JoinProviderScreen> {
                           border: Border.all(
                             color: _isUploaded ? const Color(0xFF27AE60) : Colors.grey.shade300,
                             width: 2,
-                            style: BorderStyle.solid,
                           ),
                           borderRadius: BorderRadius.circular(12),
                           color: _isUploaded
@@ -359,40 +361,6 @@ class _JoinProviderScreenState extends State<JoinProviderScreen> {
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: _buildBottomNavigationBar(context),
-    );
-  }
-
-  Widget _buildBottomNavigationBar(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFFFF6B35),
-        unselectedItemColor: Colors.grey[600],
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-        currentIndex: 4, // Profile selected
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.bookmark), label: 'Bookings'),
-          BottomNavigationBarItem(icon: Icon(Icons.wallet), label: 'Wallet'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-        onTap: (index) {
-          // Handle navigation
-        },
       ),
     );
   }
