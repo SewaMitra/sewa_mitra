@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import 'join_provider_screen.dart';
@@ -17,6 +19,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String _name = 'Loading...';
   String _email = '';
+  String? _photoUrl;
   bool _isLoading = true;
 
   @override
@@ -32,10 +35,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (profile != null) {
           _name = profile['fullName'] ?? 'User';
           _email = profile['email'] ?? '';
+          _photoUrl = profile['photoUrl'];
         } else {
           final user = AuthService.currentUser;
           _name = user?.displayName ?? 'User';
           _email = user?.email ?? '';
+          _photoUrl = user?.photoURL;
         }
         _isLoading = false;
       });
@@ -43,7 +48,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _navigateTo(Widget page) async {
-    final result = await Navigator.push<Map<String, String>>(
+    final result = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(builder: (_) => page),
     );
@@ -51,6 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _name = result['name'] ?? _name;
         _email = result['email'] ?? _email;
+        _photoUrl = result['photoUrl'] ?? _photoUrl;
       });
     }
   }
@@ -109,8 +115,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         color: AppTheme.lightOrange,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.person_rounded,
-                          color: AppTheme.primaryOrange, size: 50),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(45),
+                        child: _photoUrl != null && _photoUrl!.isNotEmpty
+                            ? Image.network(_photoUrl!, fit: BoxFit.cover)
+                            : const Icon(Icons.person_rounded,
+                                color: AppTheme.primaryOrange, size: 50),
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Text(_name,
@@ -129,7 +140,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: Icons.edit_rounded,
                       label: 'Edit Profile',
                       onTap: () => _navigateTo(
-                        EditProfileScreen(name: _name, email: _email),
+                        EditProfileScreen(
+                            name: _name, email: _email, photoUrl: _photoUrl),
                       ),
                     ),
               _ProfileTile(
@@ -250,7 +262,9 @@ class _ProfileTile extends StatelessWidget {
 class EditProfileScreen extends StatefulWidget {
   final String name;
   final String email;
-  const EditProfileScreen({super.key, required this.name, required this.email});
+  final String? photoUrl;
+  const EditProfileScreen(
+      {super.key, required this.name, required this.email, this.photoUrl});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -261,6 +275,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _emailCtrl;
   late TextEditingController _phoneCtrl;
   final _formKey = GlobalKey<FormState>();
+  File? _imageFile;
+  String? _currentPhotoUrl;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -268,6 +285,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameCtrl = TextEditingController(text: widget.name);
     _emailCtrl = TextEditingController(text: widget.email);
     _phoneCtrl = TextEditingController(text: '+977 9800000000');
+    _currentPhotoUrl = widget.photoUrl;
   }
 
   @override
@@ -278,12 +296,44 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
-  void _save() {
-    if (_formKey.currentState!.validate()) {
-      Navigator.pop(context, {
-        'name': _nameCtrl.text.trim(),
-        'email': _emailCtrl.text.trim(),
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
       });
+    }
+  }
+
+  Future<void> _save() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isSaving = true);
+
+      String? newPhotoUrl = _currentPhotoUrl;
+
+      if (_imageFile != null) {
+        newPhotoUrl = await AuthService.uploadProfileImage(_imageFile!);
+      }
+
+      final result = await AuthService.updateProfile(
+        fullName: _nameCtrl.text.trim(),
+        photoUrl: newPhotoUrl,
+      );
+
+      setState(() => _isSaving = false);
+
+      if (result.success) {
+        Navigator.pop(context, {
+          'name': _nameCtrl.text.trim(),
+          'email': _emailCtrl.text.trim(),
+          'photoUrl': newPhotoUrl,
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result.errorMessage ?? 'Update failed')),
+        );
+      }
     }
   }
 
@@ -298,29 +348,42 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           padding: const EdgeInsets.all(20),
           children: [
             Center(
-              child: Stack(
-                children: [
-                  Container(
-                    width: 90,
-                    height: 90,
-                    decoration: const BoxDecoration(
-                        color: AppTheme.lightOrange, shape: BoxShape.circle),
-                    child: const Icon(Icons.person_rounded,
-                        color: AppTheme.primaryOrange, size: 50),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      width: 28,
-                      height: 28,
+              child: GestureDetector(
+                onTap: _pickImage,
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 90,
+                      height: 90,
                       decoration: const BoxDecoration(
-                          color: AppTheme.primaryOrange, shape: BoxShape.circle),
-                      child: const Icon(Icons.camera_alt,
-                          size: 14, color: Colors.white),
+                          color: AppTheme.lightOrange, shape: BoxShape.circle),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(45),
+                        child: _imageFile != null
+                            ? Image.file(_imageFile!, fit: BoxFit.cover)
+                            : (_currentPhotoUrl != null &&
+                                    _currentPhotoUrl!.isNotEmpty
+                                ? Image.network(_currentPhotoUrl!,
+                                    fit: BoxFit.cover)
+                                : const Icon(Icons.person_rounded,
+                                    color: AppTheme.primaryOrange, size: 50)),
+                      ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: const BoxDecoration(
+                            color: AppTheme.primaryOrange,
+                            shape: BoxShape.circle),
+                        child: const Icon(Icons.camera_alt,
+                            size: 14, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 28),
@@ -329,6 +392,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     v!.trim().isEmpty ? 'Name is required' : null),
             const SizedBox(height: 14),
             _buildField('Email', _emailCtrl,
+                enabled: false,
                 keyboardType: TextInputType.emailAddress,
                 validator: (v) {
                   if (v!.trim().isEmpty) return 'Email is required';
@@ -340,7 +404,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 keyboardType: TextInputType.phone),
             const SizedBox(height: 28),
             ElevatedButton(
-              onPressed: _save,
+              onPressed: _isSaving ? null : _save,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryOrange,
                 foregroundColor: Colors.white,
@@ -348,9 +412,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('Save Changes',
-                  style:
-                      TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              child: _isSaving
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2))
+                  : const Text('Save Changes',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -359,7 +429,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildField(String label, TextEditingController ctrl,
-      {TextInputType? keyboardType, String? Function(String?)? validator}) {
+      {TextInputType? keyboardType,
+      String? Function(String?)? validator,
+      bool enabled = true}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -373,9 +445,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           controller: ctrl,
           keyboardType: keyboardType,
           validator: validator,
+          enabled: enabled,
           decoration: InputDecoration(
             filled: true,
-            fillColor: AppTheme.white,
+            fillColor: enabled ? AppTheme.white : Colors.grey.shade200,
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none),

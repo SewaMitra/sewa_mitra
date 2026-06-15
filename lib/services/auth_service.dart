@@ -1,10 +1,13 @@
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static final FirebaseFirestore _db = FirebaseFirestore.instance;
+  static final FirebaseStorage _storage = FirebaseStorage.instance;
   static final GoogleSignIn _googleSignIn = GoogleSignIn(
     serverClientId: '1090348965383-ufo5ftb59l4lhvp5flr7mn9tpumv5a6g.apps.googleusercontent.com',
   );
@@ -203,6 +206,7 @@ class AuthService {
   // ──────────────────────────────────────────
   static Future<AuthResult> updateProfile({
     String? fullName,
+    String? photoUrl,
     Map<String, dynamic>? extraFields,
   }) async {
     try {
@@ -212,6 +216,7 @@ class AuthService {
       final updates = <String, dynamic>{
         'updatedAt': FieldValue.serverTimestamp(),
         if (fullName != null) 'fullName': fullName.trim(),
+        if (photoUrl != null) 'photoUrl': photoUrl,
         ...?extraFields,
       };
 
@@ -219,10 +224,30 @@ class AuthService {
       if (fullName != null) {
         await _auth.currentUser?.updateDisplayName(fullName.trim());
       }
+      if (photoUrl != null) {
+        await _auth.currentUser?.updatePhotoURL(photoUrl);
+      }
 
       return AuthResult.success();
     } catch (_) {
       return AuthResult.error('Could not update profile. Try again.');
+    }
+  }
+
+  // ──────────────────────────────────────────
+  // UPLOAD PROFILE IMAGE
+  // ──────────────────────────────────────────
+  static Future<String?> uploadProfileImage(File imageFile) async {
+    try {
+      final uid = _auth.currentUser?.uid;
+      if (uid == null) return null;
+
+      final ref = _storage.ref().child('user_profiles').child('$uid.jpg');
+      await ref.putFile(imageFile);
+      return await ref.getDownloadURL();
+    } catch (e) {
+      print('Error uploading image: $e');
+      return null;
     }
   }
 
