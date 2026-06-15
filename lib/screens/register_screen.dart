@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sewa_mitra/screens/auth_service.dart';
+import 'package:sewa_mitra/services/auth_service.dart';
 import 'package:sewa_mitra/screens/verify_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -68,10 +68,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = false);
 
     if (result.success) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const VerifyScreen()),
-      );
+      // AuthWrapper in main.dart will automatically switch to VerifyScreen
     } else {
       setState(() => _errorMessage = result.errorMessage);
     }

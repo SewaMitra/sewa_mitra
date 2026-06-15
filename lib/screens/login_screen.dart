@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sewa_mitra/screens/auth_service.dart';
+import 'package:sewa_mitra/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,6 +13,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
   String? _errorMessage;
 
   @override
@@ -42,9 +43,30 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (result.success) {
-      Navigator.pushReplacementNamed(context, '/main');
+      // AuthWrapper will handle navigation
     } else {
       setState(() => _errorMessage = result.errorMessage);
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _isGoogleLoading = true;
+      _errorMessage = null;
+    });
+
+    final result = await AuthService.signInWithGoogle();
+
+    if (!mounted) return;
+    setState(() => _isGoogleLoading = false);
+
+    if (result.success) {
+      // AuthWrapper will handle navigation
+    } else {
+      // User cancelled — don't show an error
+      if (result.errorMessage != 'Sign-in cancelled.') {
+        setState(() => _errorMessage = result.errorMessage);
+      }
     }
   }
 
@@ -220,22 +242,27 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 height: 54,
                 child: OutlinedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Google Login Coming Soon')),
-                    );
-                  },
-                  icon: const Text(
-                    'G',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  label: const Text(
-                    'Login with Google',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  onPressed: _isGoogleLoading ? null : _signInWithGoogle,
+                  icon: _isGoogleLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.red,
+                          ),
+                        )
+                      : const Text(
+                          'G',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                  label: Text(
+                    _isGoogleLoading ? 'Signing in...' : 'Login with Google',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   style: OutlinedButton.styleFrom(
                     backgroundColor: Colors.white,

@@ -1,26 +1,51 @@
 {
   "project_info": {
-    "project_number": "514977217370",
-    "project_id": "sewa-mitra-a3c18",
-    "storage_bucket": "sewa-mitra-a3c18.firebasestorage.app"
+    "project_number": "1090348965383",
+    "project_id": "sewamitra-162a9",
+    "storage_bucket": "sewamitra-162a9.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:514977217370:android:90686bf2af16841b1ed163",
+        "mobilesdk_app_id": "1:1090348965383:android:6329b1f3d7f7b8ccc954a2",
         "android_client_info": {
           "package_name": "com.example.sewa_mitra"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1090348965383-gfg160eoqdile8kan2csal22mbni037m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.sewa_mitra",
+            "certificate_hash": "47b79654c11e07d2018249742393314e6270d330"
+          }
+        },
+        {
+          "client_id": "1090348965383-ufo5ftb59l4lhvp5flr7mn9tpumv5a6g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyD_13r6JPhu8uBTX9xkonR3HgNqBL75T9k"
+          "current_key": "AIzaSyAgv8Bw6pQAKj2KDa6UIumacz02HIXLYKA"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1090348965383-ufo5ftb59l4lhvp5flr7mn9tpumv5a6g.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1090348965383-7f7bitt2kfhicp6fqljhvk4an3mjo287.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.sewaMitrabookings"
+              }
+            }
+          ]
         }
       }
     }

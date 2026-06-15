@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:sewa_mitra/screens/auth_service.dart';
+import 'package:sewa_mitra/services/auth_service.dart';
 
 class VerifyScreen extends StatefulWidget {
   const VerifyScreen({super.key});
@@ -22,7 +22,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
       final verified = await AuthService.checkEmailVerified();
       if (verified && mounted) {
         _checkTimer?.cancel();
-        Navigator.pushReplacementNamed(context, '/main');
+        // AuthWrapper in main.dart will automatically switch to MainContainer
       }
     });
   }

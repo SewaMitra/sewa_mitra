@@ -1,9 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static final FirebaseFirestore _db = FirebaseFirestore.instance;
+  static final GoogleSignIn _googleSignIn = GoogleSignIn(
+    serverClientId: '1090348965383-ufo5ftb59l4lhvp5flr7mn9tpumv5a6g.apps.googleusercontent.com',
+  );
 
   // ──────────────────────────────────────────
   // STREAMS & GETTERS
@@ -12,17 +16,25 @@ class AuthService {
   static User? get currentUser => _auth.currentUser;
 
   // ──────────────────────────────────────────
-  // SIGN IN
+  // SIGN IN WITH EMAIL
   // ──────────────────────────────────────────
   static Future<AuthResult> signIn({
     required String email,
     required String password,
   }) async {
     try {
-      await _auth.signInWithEmailAndPassword(
+      final credential = await _auth.signInWithEmailAndPassword(
         email: email.trim(),
         password: password,
       );
+      
+      if (credential.user != null) {
+        await _db.collection('users').doc(credential.user!.uid).update({
+          'isOnline': true,
+          'lastLogin': FieldValue.serverTimestamp(),
+        }).catchError((_) {}); // Best effort
+      }
+      
       return AuthResult.success();
     } on FirebaseAuthException catch (e) {
       return AuthResult.error(_friendlyError(e.code));
@@ -32,7 +44,63 @@ class AuthService {
   }
 
   // ──────────────────────────────────────────
-  // REGISTER  →  also creates Firestore profile
+  // SIGN IN WITH GOOGLE
+  // ──────────────────────────────────────────
+  static Future<AuthResult> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      if (googleUser == null) return AuthResult.error('Sign-in cancelled.');
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential = await _auth.signInWithCredential(credential);
+      final user = userCredential.user!;
+
+      final docRef = _db.collection('users').doc(user.uid);
+      final doc = await docRef.get();
+
+      if (!doc.exists) {
+        await docRef.set({
+          'uid': user.uid,
+          'fullName': user.displayName ?? '',
+          'email': user.email ?? '',
+          'emailVerified': true,
+          'photoUrl': user.photoURL ?? '',
+          'provider': 'google',
+          'isOnline': true,
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+          'lastLogin': FieldValue.serverTimestamp(),
+        });
+      } else {
+        await docRef.update({
+          'photoUrl': user.photoURL ?? '',
+          'isOnline': true,
+          'updatedAt': FieldValue.serverTimestamp(),
+          'lastLogin': FieldValue.serverTimestamp(),
+        });
+      }
+
+      return AuthResult.success();
+    } on FirebaseAuthException catch (e) {
+      print('FirebaseAuthException: ${e.code} — ${e.message}');
+      return AuthResult.error('Firebase: ${e.code} — ${e.message}');
+    } catch (e, stack) {
+      print('Google Sign-In error: $e');
+      print('Stack: $stack');
+      return AuthResult.error('Error: $e');
+    }
+  }
+
+  // ──────────────────────────────────────────
+  // REGISTER
   // ──────────────────────────────────────────
   static Future<AuthResult> register({
     required String fullName,
@@ -46,23 +114,22 @@ class AuthService {
       );
 
       final user = credential.user!;
-
-      // Save display name in Firebase Auth
       await user.updateDisplayName(fullName.trim());
 
-      // Create user profile document in Firestore
       await _db.collection('users').doc(user.uid).set({
         'uid': user.uid,
         'fullName': fullName.trim(),
         'email': email.trim(),
         'emailVerified': false,
+        'photoUrl': '',
+        'provider': 'email',
+        'isOnline': true,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
+        'lastLogin': FieldValue.serverTimestamp(),
       });
 
-      // Send email verification
       await user.sendEmailVerification();
-
       return AuthResult.success();
     } on FirebaseAuthException catch (e) {
       return AuthResult.error(_friendlyError(e.code));
@@ -103,7 +170,6 @@ class AuthService {
 
   // ──────────────────────────────────────────
   // CHECK EMAIL VERIFIED
-  // Also updates Firestore when verified for the first time
   // ──────────────────────────────────────────
   static Future<bool> checkEmailVerified() async {
     await _auth.currentUser?.reload();
@@ -112,7 +178,6 @@ class AuthService {
     if (verified) {
       final uid = _auth.currentUser?.uid;
       if (uid != null) {
-        // Update Firestore profile so other parts of the app can read it
         await _db.collection('users').doc(uid).update({
           'emailVerified': true,
           'updatedAt': FieldValue.serverTimestamp(),
@@ -124,18 +189,17 @@ class AuthService {
   }
 
   // ──────────────────────────────────────────
-  // GET USER PROFILE FROM FIRESTORE
+  // GET USER PROFILE
   // ──────────────────────────────────────────
   static Future<Map<String, dynamic>?> getUserProfile() async {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return null;
-
     final doc = await _db.collection('users').doc(uid).get();
     return doc.exists ? doc.data() : null;
   }
 
   // ──────────────────────────────────────────
-  // UPDATE USER PROFILE IN FIRESTORE
+  // UPDATE PROFILE
   // ──────────────────────────────────────────
   static Future<AuthResult> updateProfile({
     String? fullName,
@@ -152,7 +216,6 @@ class AuthService {
       };
 
       await _db.collection('users').doc(uid).update(updates);
-
       if (fullName != null) {
         await _auth.currentUser?.updateDisplayName(fullName.trim());
       }
@@ -167,7 +230,24 @@ class AuthService {
   // SIGN OUT
   // ──────────────────────────────────────────
   static Future<void> signOut() async {
-    await _auth.signOut();
+    try {
+      final uid = _auth.currentUser?.uid;
+      if (uid != null) {
+        // Update user status in "backend" (Firestore) before signing out
+        await _db.collection('users').doc(uid).update({
+          'isOnline': false,
+          'lastLogout': FieldValue.serverTimestamp(),
+        }).timeout(const Duration(seconds: 2)).catchError((e) {
+          print('Error updating logout status: $e');
+        });
+      }
+    } catch (e) {
+      print('Logout status update failed: $e');
+    } finally {
+      // Always sign out locally
+      await _googleSignIn.signOut();
+      await _auth.signOut();
+    }
   }
 
   // ──────────────────────────────────────────
@@ -191,6 +271,8 @@ class AuthService {
         return 'Too many attempts. Please wait a moment and try again.';
       case 'network-request-failed':
         return 'No internet connection. Please check your network.';
+      case 'account-exists-with-different-credential':
+        return 'An account already exists with this email using a different sign-in method.';
       default:
         return 'Something went wrong. Please try again.';
     }

@@ -4,22 +4,11 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
-/// Default [FirebaseOptions] for use with your Firebase apps.
-///
-/// Example:
-/// ```dart
-/// import 'firebase_options.dart';
-/// // ...
-/// await Firebase.initializeApp(
-///   options: DefaultFirebaseOptions.currentPlatform,
-/// );
-/// ```
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
       throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
+        'DefaultFirebaseOptions have not been configured for web.',
       );
     }
     switch (defaultTargetPlatform) {
@@ -27,21 +16,6 @@ class DefaultFirebaseOptions {
         return android;
       case TargetPlatform.iOS:
         return ios;
-      case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macOS - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
-      case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
-      case TargetPlatform.linux:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for linux - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -49,22 +23,23 @@ class DefaultFirebaseOptions {
     }
   }
 
-  // ─── Matches google-services.json (project: sewa-mitra-a3c18) ───
+  // ─── Matches google-services.json (project: sewamitra-162a9) ───
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyD_13r6JPhu8uBTX9xkonR3HgNqBL75T9k',
-    appId: '1:514977217370:android:90686bf2af16841b1ed163',
-    messagingSenderId: '514977217370',
-    projectId: 'sewa-mitra-a3c18',
-    storageBucket: 'sewa-mitra-a3c18.firebasestorage.app',
+    apiKey: 'AIzaSyAgv8Bw6pQAKj2KDa6UIumacz02HIXLYKA',
+    appId: '1:1090348965383:android:6329b1f3d7f7b8ccc954a2',
+    messagingSenderId: '1090348965383',
+    projectId: 'sewamitra-162a9',
+    storageBucket: 'sewamitra-162a9.firebasestorage.app',
   );
 
-  // ─── iOS: add your GoogleService-Info.plist and fill these in ───
+  // ─── iOS: add GoogleService-Info.plist and fill these in ───
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_IOS_API_KEY',
-    appId: 'REPLACE_WITH_IOS_APP_ID',
-    messagingSenderId: '514977217370',
-    projectId: 'sewa-mitra-a3c18',
-    storageBucket: 'sewa-mitra-a3c18.firebasestorage.app',
+    apiKey: 'AIzaSyB9vRcCSIuhinM-0_UDXESAVd7Djm_0Ljo',
+    appId: '1:1090348965383:ios:777be571916832f3c954a2',
+    messagingSenderId: '1090348965383',
+    projectId: 'sewamitra-162a9',
+    storageBucket: 'sewamitra-162a9.firebasestorage.app',
+    iosClientId: '1090348965383-roub60tkg8oesidikl57v4f87tgsqm1o.apps.googleusercontent.com',
     iosBundleId: 'com.example.sewaMitra',
   );
 }

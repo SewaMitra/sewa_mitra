@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/auth_service.dart';
 import 'join_provider_screen.dart';
 import 'earning_screen.dart';
 import 'transaction_screen.dart';
@@ -14,8 +15,32 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String _name = 'Ram Shrestha';
-  String _email = 'ram@example.com';
+  String _name = 'Loading...';
+  String _email = '';
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final profile = await AuthService.getUserProfile();
+    if (mounted) {
+      setState(() {
+        if (profile != null) {
+          _name = profile['fullName'] ?? 'User';
+          _email = profile['email'] ?? '';
+        } else {
+          final user = AuthService.currentUser;
+          _name = user?.displayName ?? 'User';
+          _email = user?.email ?? '';
+        }
+        _isLoading = false;
+      });
+    }
+  }
 
   void _navigateTo(Widget page) async {
     final result = await Navigator.push<Map<String, String>>(
@@ -42,12 +67,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Logged out successfully')),
-              );
+            onPressed: () async {
+              // 1. Close the dialog first
+              Navigator.of(context, rootNavigator: true).pop();
+              
+              // 2. Sign out (this triggers AuthWrapper to show LoginScreen)
+              await AuthService.signOut();
+              
+              // 3. Show a snackbar on the LoginScreen (optional, might need a different context)
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Logged out successfully')),
+                );
+              }
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Log out'),
@@ -62,41 +94,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: AppTheme.bgColor,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              // Avatar
-              Container(
-                width: 90,
-                height: 90,
-                decoration: const BoxDecoration(
-                  color: AppTheme.lightOrange,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.person_rounded,
-                    color: AppTheme.primaryOrange, size: 50),
-              ),
-              const SizedBox(height: 12),
-              Text(_name,
-                  style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.darkText)),
-              const SizedBox(height: 4),
-              Text(_email,
-                  style: const TextStyle(fontSize: 14, color: AppTheme.greyText)),
-              const SizedBox(height: 28),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    // Avatar
+                    Container(
+                      width: 90,
+                      height: 90,
+                      decoration: const BoxDecoration(
+                        color: AppTheme.lightOrange,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.person_rounded,
+                          color: AppTheme.primaryOrange, size: 50),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(_name,
+                        style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.darkText)),
+                    const SizedBox(height: 4),
+                    Text(_email,
+                        style: const TextStyle(
+                            fontSize: 14, color: AppTheme.greyText)),
+                    const SizedBox(height: 28),
 
-              // ── Menu items ──────────────────────────────────────────────
-              _ProfileTile(
-                icon: Icons.edit_rounded,
-                label: 'Edit Profile',
-                onTap: () => _navigateTo(
-                  EditProfileScreen(name: _name, email: _email),
-                ),
-              ),
+                    // ── Menu items ──────────────────────────────────────────────
+                    _ProfileTile(
+                      icon: Icons.edit_rounded,
+                      label: 'Edit Profile',
+                      onTap: () => _navigateTo(
+                        EditProfileScreen(name: _name, email: _email),
+                      ),
+                    ),
               _ProfileTile(
                 icon: Icons.work_rounded,
                 label: 'Join as Provider',
