@@ -45,6 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (result.success) {
       // GoRouter redirect logic in core/router.dart will handle the path
+      if (mounted) context.go('/splash'); // Go back to splash to handle role detection
     } else {
       setState(() => _errorMessage = result.errorMessage);
     }
@@ -63,6 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (result.success) {
       // GoRouter redirect logic in core/router.dart will handle the path
+      if (mounted) context.go('/splash'); // Go back to splash to handle role detection
     } else {
       if (result.errorMessage != 'Sign-in cancelled.') {
         setState(() => _errorMessage = result.errorMessage);

@@ -67,7 +67,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = false);
 
     if (result.success) {
-      // GoRouter redirect logic in core/router.dart will handle the transition to VerifyScreen
+      // GoRouter redirect logic in core/router.dart will handle the path
+      if (mounted) context.go('/verify');
     } else {
       setState(() => _errorMessage = result.errorMessage);
     }

@@ -77,15 +77,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // 1. Close the dialog first
               Navigator.of(context, rootNavigator: true).pop();
               
-              // 2. Sign out (this triggers AuthWrapper to show LoginScreen)
+              // 2. Sign out (this triggers GoRouter to redirect to /login)
               await AuthService.signOut();
-              
-              // 3. Show a snackbar on the LoginScreen (optional, might need a different context)
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Logged out successfully')),
-                );
-              }
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Log out'),
