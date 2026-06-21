@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/models.dart';
+import 'package:go_router/go_router.dart';
+import '../../shared/models/models.dart';
 
 class PaymentSuccessScreen extends StatelessWidget {
   final double amount;

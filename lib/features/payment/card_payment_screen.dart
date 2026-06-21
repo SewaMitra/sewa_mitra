@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'payment_success_screen.dart';
-import '../models/models.dart';
+import '../../shared/models/models.dart';
 
 class CardPaymentScreen extends StatefulWidget {
   final double amount;

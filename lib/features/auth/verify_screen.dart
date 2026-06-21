@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sewa_mitra/services/auth_service.dart';
 
 class VerifyScreen extends StatefulWidget {
@@ -17,12 +18,12 @@ class _VerifyScreenState extends State<VerifyScreen> {
   @override
   void initState() {
     super.initState();
-    // Poll every 4 seconds to check if the user clicked the link
     _checkTimer = Timer.periodic(const Duration(seconds: 4), (_) async {
       final verified = await AuthService.checkEmailVerified();
       if (verified && mounted) {
         _checkTimer?.cancel();
-        // AuthWrapper in main.dart will automatically switch to MainContainer
+        // GoRouter redirect logic in core/router.dart or initialLocation will handle it
+        context.go('/home');
       }
     });
   }
@@ -66,37 +67,26 @@ class _VerifyScreenState extends State<VerifyScreen> {
         child: Column(
           children: [
             const SizedBox(height: 60),
-
             const Icon(Icons.email_outlined, color: Colors.orange, size: 80),
-
             const SizedBox(height: 25),
-
             const Text(
               'Check your email',
               style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 12),
-
             Text(
               'We sent a verification link to\n$email\n\nClick the link to activate your account.',
               textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.blueGrey, height: 1.6),
             ),
-
             const SizedBox(height: 30),
-
             const CircularProgressIndicator(color: Colors.orange),
-
             const SizedBox(height: 12),
-
             const Text(
               'Waiting for verification…',
               style: TextStyle(color: Colors.blueGrey),
             ),
-
             const SizedBox(height: 40),
-
             if (_resendMessage != null)
               Container(
                 width: double.infinity,
@@ -123,7 +113,6 @@ class _VerifyScreenState extends State<VerifyScreen> {
                   ),
                 ),
               ),
-
             SizedBox(
               width: double.infinity,
               height: 54,
@@ -151,13 +140,11 @@ class _VerifyScreenState extends State<VerifyScreen> {
                       ),
               ),
             ),
-
             const SizedBox(height: 16),
-
             TextButton(
               onPressed: () async {
                 await AuthService.signOut();
-                if (mounted) Navigator.pushReplacementNamed(context, '/login');
+                if (mounted) context.go('/login');
               },
               child: const Text(
                 'Use a different account',

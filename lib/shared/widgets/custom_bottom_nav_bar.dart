@@ -1,26 +1,26 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
+import '../../core/theme.dart';
+
+class NavItem {
+  final IconData icon;
+  final String label;
+  const NavItem({required this.icon, required this.label});
+}
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
+  final List<NavItem> items;
 
   const CustomBottomNavBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
+    required this.items,
   });
 
   @override
   Widget build(BuildContext context) {
-    final items = [
-      _NavItem(icon: Icons.home_rounded, label: 'Home'),
-      _NavItem(icon: Icons.calendar_today_rounded, label: 'Bookings'),
-      _NavItem(icon: Icons.account_balance_wallet_rounded, label: 'Wallet'),
-      _NavItem(icon: Icons.notifications_rounded, label: 'Notifications'),
-      _NavItem(icon: Icons.person_rounded, label: 'Profile'),
-    ];
-
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.white,
@@ -94,10 +94,4 @@ class CustomBottomNavBar extends StatelessWidget {
       ),
     );
   }
-}
-
-class _NavItem {
-  final IconData icon;
-  final String label;
-  _NavItem({required this.icon, required this.label});
 }

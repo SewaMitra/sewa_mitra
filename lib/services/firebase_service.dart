@@ -9,7 +9,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/user_model.dart';
+import '../shared/models/user_model.dart';
 
 class FirebaseService {
   // ── Singletons ─────────────────────────────────────────────────────────────

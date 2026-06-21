@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'book_service.dart';
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});

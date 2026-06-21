@@ -1,13 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../theme/app_theme.dart';
-import '../services/auth_service.dart';
-import 'join_provider_screen.dart';
-import 'earning_screen.dart';
-import 'transaction_screen.dart';
-import 'user_management_screen.dart';
-import 'provider_management_screen.dart';
+import '../../core/theme.dart';
+import '../../services/auth_service.dart';
+import '../provider/join_provider_screen.dart';
+import '../provider/earning_screen.dart';
+import '../wallet/transaction_screen.dart';
+import '../admin/user_management_screen.dart';
+import '../provider/provider_management_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

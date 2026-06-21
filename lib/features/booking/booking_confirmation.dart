@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'notifications.dart';
-import 'book_service.dart';
+import 'package:go_router/go_router.dart';
 
 class BookingConfirmationScreen extends StatelessWidget {
   const BookingConfirmationScreen({super.key});

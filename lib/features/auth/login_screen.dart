@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sewa_mitra/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -43,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (result.success) {
-      // AuthWrapper will handle navigation
+      // GoRouter redirect logic in core/router.dart will handle the path
     } else {
       setState(() => _errorMessage = result.errorMessage);
     }
@@ -61,9 +62,8 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isGoogleLoading = false);
 
     if (result.success) {
-      // AuthWrapper will handle navigation
+      // GoRouter redirect logic in core/router.dart will handle the path
     } else {
-      // User cancelled — don't show an error
       if (result.errorMessage != 'Sign-in cancelled.') {
         setState(() => _errorMessage = result.errorMessage);
       }
@@ -74,20 +74,16 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xfff6f8fb),
-
       appBar: AppBar(
         title: const Text('Welcome'),
         backgroundColor: Colors.white,
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(22),
         child: SingleChildScrollView(
           child: Column(
             children: [
-
               const SizedBox(height: 30),
-
               Container(
                 height: 80,
                 width: 80,
@@ -99,25 +95,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Image.asset('assets/logo.jpeg', fit: BoxFit.cover),
                 ),
               ),
-
               const SizedBox(height: 20),
-
               const Text(
                 'Welcome',
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
-
               const SizedBox(height: 8),
-
               const Text(
                 'Sign in to book trusted\nprofessionals near you',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.blueGrey),
               ),
-
               const SizedBox(height: 35),
-
-              // Error banner
               if (_errorMessage != null) ...[
                 Container(
                   width: double.infinity,
@@ -134,7 +123,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 16),
               ],
-
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -149,9 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 18),
-
               TextField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
@@ -175,23 +161,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 12),
-
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () =>
-                      Navigator.pushNamed(context, '/forgot_password'),
+                  onPressed: () => context.push('/forgot-password'),
                   child: const Text(
                     'Forgot Password?',
                     style: TextStyle(color: Colors.orange),
                   ),
                 ),
               ),
-
               const SizedBox(height: 10),
-
               SizedBox(
                 width: double.infinity,
                 height: 54,
@@ -219,11 +200,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                 ),
               ),
-
               const SizedBox(height: 25),
-
-              Row(
-                children: const [
+              const Row(
+                children: [
                   Expanded(child: Divider()),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 12),
@@ -235,9 +214,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Expanded(child: Divider()),
                 ],
               ),
-
               const SizedBox(height: 25),
-
               SizedBox(
                 width: double.infinity,
                 height: 54,
@@ -274,15 +251,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text("Don't have an account? "),
                   GestureDetector(
-                    onTap: () => Navigator.pushNamed(context, '/register'),
+                    onTap: () => context.push('/register'),
                     child: const Text(
                       'Sign Up',
                       style: TextStyle(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sewa_mitra/services/auth_service.dart';
-import 'package:sewa_mitra/screens/verify_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -18,7 +18,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  // Password rule states
   bool get _hasMinLength => _passwordController.text.length >= 8;
   bool get _hasUppercase => _passwordController.text.contains(RegExp(r'[A-Z]'));
   bool get _hasNumberOrSymbol =>
@@ -68,7 +67,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = false);
 
     if (result.success) {
-      // AuthWrapper in main.dart will automatically switch to VerifyScreen
+      // GoRouter redirect logic in core/router.dart will handle the transition to VerifyScreen
     } else {
       setState(() => _errorMessage = result.errorMessage);
     }
@@ -78,21 +77,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xfff6f8fb),
-
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: const Text('Create account'),
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(22),
         child: SingleChildScrollView(
           child: Column(
             children: [
-
               const SizedBox(height: 20),
-
-              // Error banner
               if (_errorMessage != null) ...[
                 Container(
                   width: double.infinity,
@@ -109,7 +103,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
               ],
-
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -123,9 +116,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 18),
-
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -140,9 +131,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 18),
-
               TextField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
@@ -166,19 +155,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              // Live password rules
               _PasswordRule(met: _hasMinLength, label: 'At least 8 characters'),
               const SizedBox(height: 10),
               _PasswordRule(met: _hasUppercase, label: 'One uppercase letter'),
               const SizedBox(height: 10),
               _PasswordRule(
                   met: _hasNumberOrSymbol, label: 'One number or symbol'),
-
               const SizedBox(height: 25),
-
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
@@ -212,9 +196,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 30),
-
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -244,15 +226,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                 ),
               ),
-
               const SizedBox(height: 20),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text("Already have an account? "),
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () => context.go('/login'),
                     child: const Text(
                       'Sign in',
                       style: TextStyle(

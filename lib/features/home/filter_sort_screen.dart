@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class FilterSortScreen extends StatefulWidget {
   const FilterSortScreen({super.key});
@@ -23,7 +24,7 @@ class _FilterSortScreenState extends State<FilterSortScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         title: const Text("Filter & Sort",
             style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
@@ -35,7 +36,6 @@ class _FilterSortScreenState extends State<FilterSortScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text("CATEGORY", style: TextStyle(fontWeight: FontWeight.bold)),
-
               Wrap(
                 spacing: 10,
                 children: ["All", "Electrical", "Plumber", "Cleaning"].map((item) {
@@ -46,10 +46,8 @@ class _FilterSortScreenState extends State<FilterSortScreen> {
                   );
                 }).toList(),
               ),
-
               const SizedBox(height: 20),
               const Text("SORT BY", style: TextStyle(fontWeight: FontWeight.bold)),
-
               Wrap(
                 spacing: 10,
                 children: ["Rating", "Price: Low-High", "Price: High-Low"].map((item) {
@@ -60,10 +58,8 @@ class _FilterSortScreenState extends State<FilterSortScreen> {
                   );
                 }).toList(),
               ),
-
               const SizedBox(height: 20),
               const Text("MAX PRICE", style: TextStyle(fontWeight: FontWeight.bold)),
-
               Slider(
                 value: maxPrice,
                 min: 0,
@@ -72,13 +68,11 @@ class _FilterSortScreenState extends State<FilterSortScreen> {
                 label: "Rs. ${maxPrice.toInt()}",
                 onChanged: (value) => setState(() => maxPrice = value),
               ),
-
               FilterChip(
                 label: const Text("Verified Only"),
                 selected: verifiedOnly,
                 onSelected: (_) => setState(() => verifiedOnly = !verifiedOnly),
               ),
-
               FilterChip(
                 label: const Text("Available Today"),
                 selected: availableToday,

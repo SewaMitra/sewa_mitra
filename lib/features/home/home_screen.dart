@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
-import '../widgets/category_card.dart';
-import '../widgets/provider_card.dart';
-import 'book_service.dart';
-import 'filter_sort_screen.dart';
+import 'package:go_router/go_router.dart';
+import '../../core/theme.dart';
+import '../../shared/widgets/category_card.dart';
+import '../../shared/widgets/provider_card.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  // ── Network image URLs ───────────────────────────────────────────────────
-  // Hero banner worker illustration (3D construction worker)
   static const String _workerUrl =
       'https://cdn3d.iconscout.com/3d/premium/thumb/construction-worker-3d-illustration-download-in-png-blend-fbx-gltf-file-formats--helmet-builder-architecture-pack-people-illustrations-4863042.png';
 
-  // Category icons (PNG, transparent background)
   static const Map<String, String> _categoryImages = {
     'Electricity':
     'https://cdn-icons-png.flaticon.com/512/3114/3114829.png',
@@ -27,7 +23,6 @@ class HomeScreen extends StatelessWidget {
     'https://cdn-icons-png.flaticon.com/512/2516/2516697.png',
   };
 
-  // Provider avatar photos (professional workers)
   static const List<String> _providerAvatars = [
     'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=200&h=200&fit=crop&crop=face',
     'https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=200&h=200&fit=crop&crop=face',
@@ -44,15 +39,14 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Top Bar ──────────────────────────────────────────────
               Padding(
                 padding:
                 const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: const [
+                    const Row(
+                      children: [
                         Icon(Icons.location_on_rounded,
                             color: AppTheme.primaryOrange, size: 20),
                         SizedBox(width: 6),
@@ -71,7 +65,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     GestureDetector(
                       onTap: () {
-                        Navigator.pushNamed(context, '/notifications');
+                        context.push('/notifications');
                       },
                       child: Container(
                         width: 42,
@@ -95,7 +89,6 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
 
-              // ── Search Bar ───────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
@@ -133,11 +126,7 @@ class HomeScreen extends StatelessWidget {
                     const SizedBox(width: 12),
                     GestureDetector(
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const FilterSortScreen()),
-                        );
+                        context.push('/filter');
                       },
                       child: Container(
                         width: 52,
@@ -163,7 +152,6 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // ── Hero Banner ──────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Container(
@@ -183,7 +171,6 @@ class HomeScreen extends StatelessWidget {
                   child: Stack(
                     clipBehavior: Clip.hardEdge,
                     children: [
-                      // Decorative orange circle
                       Positioned(
                         right: -15,
                         top: -15,
@@ -212,7 +199,6 @@ class HomeScreen extends StatelessWidget {
                         padding: const EdgeInsets.fromLTRB(22, 18, 10, 18),
                         child: Row(
                           children: [
-                            // Text
                             const Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,7 +225,6 @@ class HomeScreen extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            // 3D Worker image from network
                             SizedBox(
                               width: 118,
                               height: 145,
@@ -290,7 +275,6 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 28),
 
-              // ── Categories Header ────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
@@ -326,7 +310,6 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // ── Category Grid ────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: GridView.count(
@@ -342,11 +325,7 @@ class HomeScreen extends StatelessWidget {
                         name: e.key,
                         icon: _buildNetworkCategoryIcon(e.value),
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const BookServiceScreen()),
-                          );
+                          context.push('/service/1');
                         },
                       ),
                     ),
@@ -365,7 +344,6 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 28),
 
-              // ── Popular Providers Header ─────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
@@ -401,7 +379,6 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // ── Provider Cards ───────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
@@ -417,11 +394,7 @@ class HomeScreen extends StatelessWidget {
                         AppTheme.primaryOrange,
                       ),
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const BookServiceScreen()),
-                        );
+                        context.push('/service/1');
                       },
                     ),
                     ProviderCard(
@@ -435,11 +408,7 @@ class HomeScreen extends StatelessWidget {
                         const Color(0xFF8B5CF6),
                       ),
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const BookServiceScreen()),
-                        );
+                        context.push('/service/1');
                       },
                     ),
                     ProviderCard(
@@ -453,11 +422,7 @@ class HomeScreen extends StatelessWidget {
                         const Color(0xFF06B6D4),
                       ),
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const BookServiceScreen()),
-                        );
+                        context.push('/service/1');
                       },
                     ),
                   ],
@@ -472,9 +437,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // ── Helpers ────────────────────────────────────────────────────────────
-
-  /// PNG icon from Flaticon with spinner + fallback
   Widget _buildNetworkCategoryIcon(String url) {
     return Padding(
       padding: const EdgeInsets.all(10),
@@ -507,7 +469,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  /// Unsplash provider photo with loading + fallback
   Widget _buildNetworkAvatar(String url, Color fallbackColor) {
     return Image.network(
       url,
@@ -531,7 +492,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  /// "More" three-dot card
   Widget _buildMoreIcon() {
     return Container(
       decoration: BoxDecoration(
