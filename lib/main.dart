@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
 import 'screens/payment_screen.dart';
-=======
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/main_container.dart';
 import 'screens/notifications.dart';
 import 'screens/forgot_password_screen.dart';
->>>>>>> b02644be389f2b5c289f5a37794edec6b811bdfc
+
 
 void main() {
   runApp(const MyApp());
