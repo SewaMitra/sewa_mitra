@@ -77,6 +77,7 @@ class AuthService {
           'emailVerified': true,
           'photoUrl': user.photoURL ?? '',
           'provider': 'google',
+          'role': 'customer', // ← Always assign role on first Google sign-in
           'isOnline': true,
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
@@ -126,6 +127,7 @@ class AuthService {
         'emailVerified': false,
         'photoUrl': '',
         'provider': 'email',
+        'role': 'customer', // ← Always assign role on registration
         'isOnline': true,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
