@@ -13,6 +13,33 @@ class AuthService {
   );
 
   // ──────────────────────────────────────────
+  // ROLE CACHE — avoids repeated Firestore calls on every route change
+  // ──────────────────────────────────────────
+  static String? _cachedRole;
+  static String? _cachedUid;
+
+  static Future<String> getCachedRole() async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return 'customer';
+    // Return cache if same user
+    if (_cachedUid == uid && _cachedRole != null) return _cachedRole!;
+    // Otherwise fetch and cache
+    try {
+      final doc = await _db.collection('users').doc(uid).get();
+      _cachedRole = doc.data()?['role'] ?? 'customer';
+      _cachedUid = uid;
+      return _cachedRole!;
+    } catch (_) {
+      return 'customer';
+    }
+  }
+
+  static void clearRoleCache() {
+    _cachedRole = null;
+    _cachedUid = null;
+  }
+
+  // ──────────────────────────────────────────
   // STREAMS & GETTERS
   // ──────────────────────────────────────────
   static Stream<User?> get userStream => _auth.authStateChanges();
@@ -271,7 +298,8 @@ class AuthService {
     } catch (e) {
       print('Logout status update failed: $e');
     } finally {
-      // Always sign out locally
+      // Always sign out locally and clear cache
+      clearRoleCache();
       await _googleSignIn.signOut();
       await _auth.signOut();
     }
