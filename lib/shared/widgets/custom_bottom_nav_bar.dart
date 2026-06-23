@@ -16,7 +16,7 @@ class CustomBottomNavBar extends StatelessWidget {
     super.key,
     required this.currentIndex,
     required this.onTap,
-    required this.items,
+    required this.items, required String role,
   });
 
   @override
