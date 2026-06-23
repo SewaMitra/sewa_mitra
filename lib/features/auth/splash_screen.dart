@@ -49,10 +49,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       final role = profile?['role'] ?? 'customer';
       
       if (role == 'admin') {
-        targetPath = '/admin/users';
-      } else if (role == 'provider') {
-        targetPath = '/provider/dashboard';
+        targetPath = '/admin/dashboard';
       } else {
+        // provider and customer both go to /home
         targetPath = '/home';
       }
     }
