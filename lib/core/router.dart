@@ -23,11 +23,12 @@ import '../features/wallet/send_money_screen.dart';
 import '../features/wallet/transaction_screen.dart';
 import '../features/notifications/notifications.dart';
 import '../features/profile/profile_screen.dart';
-import '../features/provider/join_provider_screen.dart';
-import '../features/provider/provider_management_screen.dart';
-import '../features/provider/earning_screen.dart';
 import '../features/admin/user_management_screen.dart';
+import '../features/admin/admin_dashboard_screen.dart';
+import '../features/provider/provider_management_screen.dart';
+import '../features/provider/join_provider_screen.dart';
 import '../main_container.dart';
+import '../services/auth_service.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -36,18 +37,41 @@ class AppRouter {
     refreshListenable: GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges()),
     redirect: (context, state) async {
       final user = FirebaseAuth.instance.currentUser;
-      final isLoggingIn = state.matchedLocation == '/login' ||
-          state.matchedLocation == '/register' ||
-          state.matchedLocation == '/forgot-password' ||
-          state.matchedLocation == '/splash';
+      final location = state.matchedLocation;
 
+      final isAuthPage = location == '/login' ||
+          location == '/register' ||
+          location == '/forgot-password' ||
+          location == '/splash' ||
+          location == '/verify';
+
+      // Not logged in → send to login
       if (user == null) {
-        return isLoggingIn ? null : '/login';
+        return isAuthPage ? null : '/login';
       }
 
-      // If logged in but on auth pages, redirect to home
-      if (isLoggingIn && state.matchedLocation != '/splash') {
+      // Logged-in user hitting auth pages → redirect to their home
+      if (isAuthPage && location != '/splash' && location != '/verify') {
+        return await _getHomeForUser(user.uid);
+      }
+
+      if (location == '/splash') {
+        return await _getHomeForUser(user.uid);
+      }
+
+      final role = await AuthService.getCachedRole();
+
+      // Only admins can access /admin routes
+      if (location.startsWith('/admin') && role != 'admin') {
         return '/home';
+      }
+
+      // Admins should not be on customer/provider screens
+      if (role == 'admin') {
+        const nonAdminRoutes = ['/home', '/bookings', '/wallet'];
+        if (nonAdminRoutes.any((p) => location.startsWith(p))) {
+          return '/admin/dashboard';
+        }
       }
 
       return null;
@@ -78,13 +102,11 @@ class AppRouter {
         name: 'forgot-password',
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
-      
-      // Main Container with Bottom Nav
+
       ShellRoute(
-        builder: (context, state, child) {
-          return MainContainer(child: child);
-        },
+        builder: (context, state, child) => MainContainer(child: child),
         routes: [
+          // ── Customer & Provider shared routes ─────────────
           GoRoute(
             path: '/home',
             name: 'home',
@@ -105,15 +127,12 @@ class AppRouter {
             name: 'profile',
             builder: (context, state) => const ProfileScreen(),
           ),
+
+          // ── Admin only routes ─────────────────────────────
           GoRoute(
-            path: '/provider/dashboard',
-            name: 'provider-dashboard',
-            builder: (context, state) => const BookingsScreen(),
-          ),
-          GoRoute(
-            path: '/provider/earnings',
-            name: 'provider-earnings',
-            builder: (context, state) => const EarningScreen(),
+            path: '/admin/dashboard',
+            name: 'admin-dashboard',
+            builder: (context, state) => const AdminDashboardScreen(),
           ),
           GoRoute(
             path: '/admin/users',
@@ -224,6 +243,11 @@ class AppRouter {
       ),
     ],
   );
+
+  static Future<String> _getHomeForUser(String uid) async {
+    final role = await AuthService.getCachedRole();
+    return role == 'admin' ? '/admin/dashboard' : '/home';
+  }
 }
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -242,4 +266,3 @@ class GoRouterRefreshStream extends ChangeNotifier {
     super.dispose();
   }
 }
-

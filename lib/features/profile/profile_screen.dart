@@ -20,6 +20,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _name = 'Loading...';
   String _email = '';
   String? _photoUrl;
+  String _role = 'customer';
   bool _isLoading = true;
 
   @override
@@ -36,6 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _name = profile['fullName'] ?? 'User';
           _email = profile['email'] ?? '';
           _photoUrl = profile['photoUrl'];
+          _role = profile['role'] ?? 'customer';
         } else {
           final user = AuthService.currentUser;
           _name = user?.displayName ?? 'User';
@@ -137,71 +139,83 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             name: _name, email: _email, photoUrl: _photoUrl),
                       ),
                     ),
-              _ProfileTile(
-                icon: Icons.work_rounded,
-                label: 'Join as Provider',
-                onTap: () => _navigateTo(const JoinProviderScreen()),
-              ),
-              _ProfileTile(
-                icon: Icons.location_on_rounded,
-                label: 'My Addresses',
-                onTap: () => _navigateTo(const MyAddressesScreen()),
-              ),
-              _ProfileTile(
-                icon: Icons.history_rounded,
-                label: 'Transactions',
-                onTap: () => _navigateTo(const TransactionScreen()),
-              ),
-              _ProfileTile(
-                icon: Icons.analytics_outlined,
-                label: 'My Earnings',
-                onTap: () => _navigateTo(const EarningScreen()),
-              ),
-              const Divider(height: 32, thickness: 1, indent: 20, endIndent: 20),
-              const Padding(
-                padding: EdgeInsets.only(left: 24, bottom: 8),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text('Admin Tools',
-                      style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.greyText)),
-                ),
-              ),
-              _ProfileTile(
-                icon: Icons.group_outlined,
-                label: 'User Management',
-                onTap: () => _navigateTo(const UserManagementScreen()),
-              ),
-              _ProfileTile(
-                icon: Icons.engineering_outlined,
-                label: 'Provider Management',
-                onTap: () => _navigateTo(const ProviderManagementScreen()),
-              ),
-              const SizedBox(height: 10),
-              _ProfileTile(
-                icon: Icons.payment_rounded,
-                label: 'Payment Methods',
-                onTap: () => _navigateTo(const PaymentMethodsScreen()),
-              ),
-              _ProfileTile(
-                icon: Icons.settings_rounded,
-                label: 'Settings',
-                onTap: () => _navigateTo(const SettingsScreen()),
-              ),
-              _ProfileTile(
-                icon: Icons.help_rounded,
-                label: 'Help & Support',
-                onTap: () => _navigateTo(const HelpSupportScreen()),
-              ),
-              _ProfileTile(
-                icon: Icons.logout_rounded,
-                label: 'Logout',
-                onTap: _confirmLogout,
-                isDestructive: true,
-              ),
-              const SizedBox(height: 24),
+
+                    // Customer & Provider only
+                    if (_role != 'admin') ...[
+                      if (_role == 'customer')
+                        _ProfileTile(
+                          icon: Icons.work_rounded,
+                          label: 'Join as Provider',
+                          onTap: () => _navigateTo(const JoinProviderScreen()),
+                        ),
+                      _ProfileTile(
+                        icon: Icons.location_on_rounded,
+                        label: 'My Addresses',
+                        onTap: () => _navigateTo(const MyAddressesScreen()),
+                      ),
+                      _ProfileTile(
+                        icon: Icons.history_rounded,
+                        label: 'Transactions',
+                        onTap: () => _navigateTo(const TransactionScreen()),
+                      ),
+                      if (_role == 'provider')
+                        _ProfileTile(
+                          icon: Icons.analytics_outlined,
+                          label: 'My Earnings',
+                          onTap: () => _navigateTo(const EarningScreen()),
+                        ),
+                    ],
+
+                    // Admin only
+                    if (_role == 'admin') ...[
+                      const Divider(height: 32, thickness: 1, indent: 20, endIndent: 20),
+                      const Padding(
+                        padding: EdgeInsets.only(left: 24, bottom: 8),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text('Admin Tools',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.greyText)),
+                        ),
+                      ),
+                      _ProfileTile(
+                        icon: Icons.group_outlined,
+                        label: 'User Management',
+                        onTap: () => _navigateTo(const UserManagementScreen()),
+                      ),
+                      _ProfileTile(
+                        icon: Icons.engineering_outlined,
+                        label: 'Provider Management',
+                        onTap: () => _navigateTo(const ProviderManagementScreen()),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+
+                    // Common for all roles
+                    _ProfileTile(
+                      icon: Icons.payment_rounded,
+                      label: 'Payment Methods',
+                      onTap: () => _navigateTo(const PaymentMethodsScreen()),
+                    ),
+                    _ProfileTile(
+                      icon: Icons.settings_rounded,
+                      label: 'Settings',
+                      onTap: () => _navigateTo(const SettingsScreen()),
+                    ),
+                    _ProfileTile(
+                      icon: Icons.help_rounded,
+                      label: 'Help & Support',
+                      onTap: () => _navigateTo(const HelpSupportScreen()),
+                    ),
+                    _ProfileTile(
+                      icon: Icons.logout_rounded,
+                      label: 'Logout',
+                      onTap: _confirmLogout,
+                      isDestructive: true,
+                    ),
+                    const SizedBox(height: 24),
             ],
           ),
         ),
