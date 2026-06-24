@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'payment_success_screen.dart';
 import 'card_payment_screen.dart';
-import '../../shared/models/models.dart';
+import '../../services/payment_service.dart';
+import '../../viewmodels/wallet_viewmodel.dart';
 
 class PaymentScreen extends StatefulWidget {
   final double amount;
@@ -24,8 +26,10 @@ class PaymentScreen extends StatefulWidget {
 
 class _PaymentScreenState extends State<PaymentScreen> {
   String? selectedMethod;
+  bool _isProcessing = false;
+  final PaymentService _paymentService = PaymentService();
 
-  void processPayment() {
+  Future<void> processPayment() async {
     if (selectedMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a payment method')),
@@ -49,26 +53,28 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return;
     }
 
-    if (selectedMethod == 'Wallet Balance') {
-      if (!WalletData.subtractMoney(widget.amount)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Insufficient Wallet Balance')),
-        );
-        return;
-      }
+    setState(() => _isProcessing = true);
+
+    final result = await _paymentService.processPayment(
+      bookingId: widget.bookingId,
+      amount: widget.amount,
+      method: selectedMethod!,
+    );
+
+    if (!mounted) return;
+    setState(() => _isProcessing = false);
+
+    if (result['success'] != true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['error'] ?? 'Payment failed')),
+      );
+      return;
     }
 
-    // Add booking data before navigating
-    final newBooking = Booking(
-      id: widget.bookingId,
-      serviceName: widget.serviceName,
-      providerName: 'Professional Provider',
-      date: widget.date,
-      time: widget.time,
-      address: 'Kathmandu, Nepal',
-      amount: widget.amount,
-    );
-    BookingData.addBooking(newBooking);
+    // Refresh wallet balance in case payment used wallet funds.
+    if (selectedMethod == 'Wallet Balance') {
+      context.read<WalletViewModel>().refresh();
+    }
 
     Navigator.pushReplacement(
       context,
@@ -77,7 +83,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           amount: widget.amount,
           bookingId: widget.bookingId,
           serviceName: widget.serviceName,
-          transactionId: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+          transactionId: result['paymentId'] ?? 'TXN${DateTime.now().millisecondsSinceEpoch}',
           method: selectedMethod!,
           bookingDate: widget.date,
           bookingTime: widget.time,
@@ -108,15 +114,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Payment details section - EXACT match
-          // Payment details section - with grey background and white text
+          // Payment details section
           Padding(
             padding: const EdgeInsets.all(20),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey[800], // Dark grey background
+                color: Colors.grey[800],
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -126,7 +131,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     'Total due',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white70, // Light white/grey for label
+                      color: Colors.white70,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -135,7 +140,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     style: const TextStyle(
                       fontSize: 36,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white, // White text for amount
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -143,7 +148,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     '${widget.serviceName} · Booking #${widget.bookingId}',
                     style: const TextStyle(
                       fontSize: 13,
-                      color: Colors.white60, // Light white for subtitle
+                      color: Colors.white60,
                     ),
                   ),
                 ],
@@ -153,7 +158,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
           const SizedBox(height: 10),
 
-          // Select payment method text
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
             child: Text(
@@ -168,7 +172,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
           const SizedBox(height: 16),
 
-          // Payment methods list
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -202,13 +205,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   primaryOrange: primaryOrange,
                 ),
                 _buildMethodCard(
-                  icon: Icons.account_balance,
-                  title: 'Bank Transfer',
-                  subtitle: 'NABIL, NIC Asia...',
-                  value: 'Bank Transfer',
-                  primaryOrange: primaryOrange,
-                ),
-                _buildMethodCard(
                   icon: Icons.money,
                   title: 'Cash on service',
                   subtitle: 'Pay after completion',
@@ -233,7 +229,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ],
             ),
             child: ElevatedButton(
-              onPressed: processPayment,
+              onPressed: _isProcessing ? null : processPayment,
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryOrange,
                 foregroundColor: Colors.white,
@@ -243,13 +239,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
                 elevation: 0,
               ),
-              child: const Text(
-                'Proceed to Pay',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              child: _isProcessing
+                  ? const SizedBox(
+                      height: 22,
+                      width: 22,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                    )
+                  : const Text(
+                      'Proceed to Pay',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
             ),
           ),
         ],
@@ -288,7 +290,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             Icon(
               icon,
               size: 28,
-              color: primaryOrange,  // All icons always orange
+              color: primaryOrange,
             ),
             const SizedBox(width: 16),
             Expanded(

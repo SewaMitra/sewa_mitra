@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sewa_mitra/services/provider_service.dart';
-import '../models/backend_models.dart';
+import 'package:sewa_mitra/shared/models/backend_models.dart';
 import 'wallet_service.dart';
 
 
@@ -28,18 +28,25 @@ class PaymentService {
         return {'success': false, 'error': 'User not authenticated'};
       }
 
-      // Get booking details
-      final bookingDoc = await _firestore
-          .collection('bookings')
-          .doc(bookingId)
-          .get();
+      // Wallet top-ups use a synthetic bookingId (prefixed 'wallet_') and
+      // aren't tied to a real booking document, so skip the booking lookup
+      // for those. Everything else must reference a real booking.
+      final isWalletTopUp = bookingId.startsWith('wallet_');
+      String? providerIdFromBooking = providerId;
 
-      if (!bookingDoc.exists) {
-        return {'success': false, 'error': 'Booking not found'};
+      if (!isWalletTopUp) {
+        final bookingDoc = await _firestore
+            .collection('bookings')
+            .doc(bookingId)
+            .get();
+
+        if (!bookingDoc.exists) {
+          return {'success': false, 'error': 'Booking not found'};
+        }
+
+        final bookingData = bookingDoc.data()!;
+        providerIdFromBooking = bookingData['providerId'] ?? providerId;
       }
-
-      final bookingData = bookingDoc.data()!;
-      final providerIdFromBooking = bookingData['providerId'] ?? providerId;
 
       // Start a batch operation
       final batch = _firestore.batch();
@@ -119,24 +126,26 @@ class PaymentService {
           'completedAt': FieldValue.serverTimestamp(),
         });
 
-        // Update booking status
-        batch.update(
-          _firestore.collection('bookings').doc(bookingId),
-          {
-            'status': 'confirmed',
-            'paymentId': paymentRef.id,
-            'updatedAt': FieldValue.serverTimestamp(),
-          },
-        );
-
-        // Add to provider's earnings (80% to provider, 20% platform fee)
-        if (providerIdFromBooking != null) {
-          await _providerService.addEarning(
-            providerId: providerIdFromBooking,
-            bookingId: bookingId,
-            amount: amount,
-            paymentId: paymentRef.id,
+        if (!isWalletTopUp) {
+          // Update booking status
+          batch.update(
+            _firestore.collection('bookings').doc(bookingId),
+            {
+              'status': 'confirmed',
+              'paymentId': paymentRef.id,
+              'updatedAt': FieldValue.serverTimestamp(),
+            },
           );
+
+          // Add to provider's earnings (80% to provider, 20% platform fee)
+          if (providerIdFromBooking != null) {
+            await _providerService.addEarning(
+              providerId: providerIdFromBooking,
+              bookingId: bookingId,
+              amount: amount,
+              paymentId: paymentRef.id,
+            );
+          }
         }
 
         // Create transaction record

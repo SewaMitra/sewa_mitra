@@ -1,16 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme.dart';
-import '../../shared/models/models.dart';
+import '../../viewmodels/wallet_viewmodel.dart';
+import '../../shared/models/backend_models.dart';
 import 'transaction_screen.dart';
 import 'add_money_screen.dart';
 import 'send_money_screen.dart';
 
-class WalletScreen extends StatelessWidget {
+class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
 
   @override
+  State<WalletScreen> createState() => _WalletScreenState();
+}
+
+class _WalletScreenState extends State<WalletScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Kick off the initial load once, after first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<WalletViewModel>().loadWalletData();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<WalletViewModel>();
+
     return Scaffold(
       backgroundColor: AppTheme.bgColor,
       appBar: AppBar(
@@ -25,157 +42,164 @@ class WalletScreen extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Balance Card
-            ValueListenableBuilder<double>(
-              valueListenable: WalletData.balanceNotifier,
-              builder: (context, balance, child) {
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(28),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppTheme.primaryOrange, Color(0xFFEA580C)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.primaryOrange.withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
+      body: RefreshIndicator(
+        onRefresh: () => viewModel.refresh(),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Balance Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(28),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppTheme.primaryOrange, Color(0xFFEA580C)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Available Balance',
-                              style: TextStyle(color: Colors.white70, fontSize: 14)),
-                          Icon(Icons.account_balance_wallet_outlined, color: Colors.white.withOpacity(0.5)),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text('Rs. ${balance.toStringAsFixed(2)}',
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryOrange.withOpacity(0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Available Balance',
+                            style: TextStyle(color: Colors.white70, fontSize: 14)),
+                        Icon(Icons.account_balance_wallet_outlined,
+                            color: Colors.white.withOpacity(0.5)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    if (viewModel.isLoading)
+                      const SizedBox(
+                        height: 36,
+                        width: 36,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 3,
+                        ),
+                      )
+                    else
+                      Text('Rs. ${viewModel.balance.toStringAsFixed(2)}',
                           style: const TextStyle(
                               color: Colors.white,
                               fontSize: 34,
                               fontWeight: FontWeight.w800)),
-                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Quick Actions
+              Row(
+                children: [
+                  _WalletAction(
+                    icon: Icons.add_circle_rounded,
+                    label: 'Add Money',
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AddMoneyScreen()),
+                      );
+                      if (context.mounted) viewModel.refresh();
+                    },
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 32),
-            
-            // Quick Actions
-            Row(
-              children: [
-                _WalletAction(
-                  icon: Icons.add_circle_rounded,
-                  label: 'Add Money',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AddMoneyScreen()),
-                    );
-                  },
-                ),
-                const SizedBox(width: 12),
-                _WalletAction(
-                  icon: Icons.send_rounded,
-                  label: 'Send Money',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SendMoneyScreen()),
-                    );
-                  },
-                ),
-                const SizedBox(width: 12),
-                _WalletAction(
-                  icon: Icons.history_rounded,
-                  label: 'History',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const TransactionScreen()),
-                    );
-                  },
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 32),
-            
-            // Recent Activity Title
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Recent Activity',
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.darkText),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const TransactionScreen()),
-                    );
-                  },
-                  child: const Text('View All', style: TextStyle(color: AppTheme.primaryOrange, fontWeight: FontWeight.w600)),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 12),
-            
-            // Dummy Recent Activity List
-            _buildRecentActivityItem(
-              icon: Icons.electric_bolt_rounded,
-              title: 'Electrical Service',
-              date: 'May 12, 2026',
-              amount: '- Rs. 2,100',
-              isDebit: true,
-            ),
-            _buildRecentActivityItem(
-              icon: Icons.add_circle_outline_rounded,
-              title: 'Added to Wallet',
-              date: 'May 10, 2026',
-              amount: '+ Rs. 5,000',
-              isDebit: false,
-            ),
-            _buildRecentActivityItem(
-              icon: Icons.cleaning_services_rounded,
-              title: 'Cleaning Service',
-              date: 'May 08, 2026',
-              amount: '- Rs. 800',
-              isDebit: true,
-            ),
-          ],
+                  const SizedBox(width: 12),
+                  _WalletAction(
+                    icon: Icons.send_rounded,
+                    label: 'Send Money',
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const SendMoneyScreen()),
+                      );
+                      if (context.mounted) viewModel.refresh();
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  _WalletAction(
+                    icon: Icons.history_rounded,
+                    label: 'History',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const TransactionScreen()),
+                      );
+                    },
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 32),
+
+              // Recent Activity Title
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Recent Activity',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.darkText),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const TransactionScreen()),
+                      );
+                    },
+                    child: const Text('View All',
+                        style: TextStyle(
+                            color: AppTheme.primaryOrange, fontWeight: FontWeight.w600)),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              if (viewModel.isLoading && viewModel.transactions.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (viewModel.transactions.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Center(
+                    child: Text(
+                      'No transactions yet',
+                      style: TextStyle(color: AppTheme.greyText),
+                    ),
+                  ),
+                )
+              else
+                ...viewModel.transactions.take(5).map(
+                      (t) => _buildRecentActivityItem(t),
+                    ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildRecentActivityItem({
-    required IconData icon,
-    required String title,
-    required String date,
-    required String amount,
-    required bool isDebit,
-  }) {
+  Widget _buildRecentActivityItem(TransactionModel transaction) {
+    final isDebit = transaction.amount < 0;
+    final icon = _iconForType(transaction.type);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -205,14 +229,17 @@ class WalletScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppTheme.darkText)),
+                Text(transaction.description ?? transaction.type,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700, fontSize: 15, color: AppTheme.darkText)),
                 const SizedBox(height: 4),
-                Text(date, style: const TextStyle(color: AppTheme.greyText, fontSize: 12)),
+                Text(_formatDate(transaction.createdAt),
+                    style: const TextStyle(color: AppTheme.greyText, fontSize: 12)),
               ],
             ),
           ),
           Text(
-            amount,
+            '${isDebit ? '-' : '+'}Rs. ${transaction.amount.abs().toStringAsFixed(2)}',
             style: TextStyle(
               fontWeight: FontWeight.w800,
               fontSize: 15,
@@ -222,6 +249,31 @@ class WalletScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  IconData _iconForType(String type) {
+    switch (type) {
+      case 'add_money':
+        return Icons.add_circle_outline_rounded;
+      case 'send_money':
+        return Icons.arrow_upward_rounded;
+      case 'receive_money':
+        return Icons.arrow_downward_rounded;
+      case 'refund':
+        return Icons.replay_rounded;
+      case 'payment':
+        return Icons.shopping_bag_outlined;
+      default:
+        return Icons.swap_horiz_rounded;
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 }
 

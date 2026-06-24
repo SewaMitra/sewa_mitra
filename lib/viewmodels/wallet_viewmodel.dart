@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/wallet_service.dart';
 import '../services/payment_service.dart';
-import '../models/backend_models.dart';
+import 'package:sewa_mitra/shared/models/backend_models.dart';
 
 class WalletViewModel extends ChangeNotifier {
   final WalletService _walletService = WalletService();
