@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-import 'features/home/home_screen.dart';
+import 'core/router.dart';
 import 'firebase_options.dart';
 import 'viewmodels/wallet_viewmodel.dart';
 import 'viewmodels/provider_viewmodel.dart';
-import 'main_container.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,8 +26,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ProviderViewModel()),
         // Add other viewmodels as needed
       ],
-      child: MaterialApp(
+      child: MaterialApp.router(  // Changed from MaterialApp to MaterialApp.router
         title: 'Sewa Mitra',
+        routerConfig: AppRouter.router,  // Add your router configuration
         theme: ThemeData(
           primarySwatch: Colors.orange,
           fontFamily: 'Roboto',
@@ -44,8 +45,7 @@ class MyApp extends StatelessWidget {
             iconTheme: IconThemeData(color: Color(0xFF2C3E50)),
           ),
         ),
-        home: const MainContainer(child: HomeScreen()),
-        // Add routes here
+        // Remove: home: const MainContainer(child: HomeScreen()),
       ),
     );
   }

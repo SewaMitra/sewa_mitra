@@ -109,7 +109,7 @@ class _MainContainerState extends State<MainContainer> {
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _calculateSelectedIndex(context),
         onTap: (index) => _onItemTapped(index, context),
-        items: navItems,
+        items: navItems, role: '',
       ),
     );
   }
