@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../viewmodels/provider_viewmodel.dart';
 
 class JoinProviderScreen extends StatefulWidget {
   const JoinProviderScreen({super.key});
@@ -13,6 +15,7 @@ class _JoinProviderScreenState extends State<JoinProviderScreen> {
   final _phoneController = TextEditingController();
   String? _selectedCategory;
   bool _isUploaded = false;
+  bool _isSubmitting = false;
 
   final List<String> _serviceCategories = [
     'Electrical',
@@ -29,6 +32,51 @@ class _JoinProviderScreenState extends State<JoinProviderScreen> {
     _fullNameController.dispose();
     _phoneController.dispose();
     super.dispose();
+  }
+
+  Future<void> _submitApplication() async {
+    if (!(_formKey.currentState!.validate()) || _selectedCategory == null) {
+      if (_selectedCategory == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a service category')),
+        );
+      }
+      return;
+    }
+
+    if (!_isUploaded) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please upload required documents')),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    final viewModel = context.read<ProviderViewModel>();
+    final success = await viewModel.applyAsProvider(
+      fullName: _fullNameController.text.trim(),
+      businessName: _fullNameController.text.trim(),
+      description: 'Service provider for $_selectedCategory',
+      services: [_selectedCategory!],
+      category: _selectedCategory!,
+      phone: _phoneController.text.trim(),
+      documentsUploaded: _isUploaded,
+    );
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Application submitted successfully!')),
+      );
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(viewModel.error ?? 'Failed to submit application')),
+      );
+    }
   }
 
   @override
@@ -296,24 +344,7 @@ class _JoinProviderScreenState extends State<JoinProviderScreen> {
                       width: double.infinity,
                       height: 54,
                       child: ElevatedButton(
-                        onPressed: () {
-                          if (_formKey.currentState!.validate() && _selectedCategory != null) {
-                            if (_isUploaded) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Application submitted successfully!')),
-                              );
-                              Navigator.pop(context);
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Please upload required documents')),
-                              );
-                            }
-                          } else if (_selectedCategory == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Please select a service category')),
-                            );
-                          }
-                        },
+                        onPressed: _isSubmitting ? null : _submitApplication,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFFF6B35),
                           foregroundColor: Colors.white,
@@ -322,36 +353,19 @@ class _JoinProviderScreenState extends State<JoinProviderScreen> {
                           ),
                           elevation: 0,
                         ),
-                        child: const Text(
-                          'Submit Application',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Download Receipt Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 54,
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Receipt downloaded')),
-                          );
-                        },
-                        icon: const Icon(Icons.download),
-                        label: const Text('Download Receipt'),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: const Color(0xFFFF6B35)),
-                          foregroundColor: const Color(0xFFFF6B35),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
+                        child: _isSubmitting
+                            ? const SizedBox(
+                                height: 22,
+                                width: 22,
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                              )
+                            : const Text(
+                                'Submit Application',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 32),

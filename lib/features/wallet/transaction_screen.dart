@@ -1,10 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../viewmodels/wallet_viewmodel.dart';
+import '../../shared/models/backend_models.dart';
 
-class TransactionScreen extends StatelessWidget {
+class TransactionScreen extends StatefulWidget {
   const TransactionScreen({super.key});
 
   @override
+  State<TransactionScreen> createState() => _TransactionScreenState();
+}
+
+class _TransactionScreenState extends State<TransactionScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<WalletViewModel>().loadWalletData();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<WalletViewModel>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
@@ -17,174 +35,145 @@ class TransactionScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: false,
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Summary Cards
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFF2C3E50), Color(0xFF34495E)],
+      body: RefreshIndicator(
+        onRefresh: () => viewModel.refresh(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Summary Cards
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: FutureBuilder<Map<String, double>>(
+                future: viewModel.getPaymentSummary(),
+                builder: (context, snapshot) {
+                  final totalSpent = snapshot.data?['totalSpent'] ?? 0;
+                  final totalRefunded = snapshot.data?['totalRefunded'] ?? 0;
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xFF2C3E50), Color(0xFF34495E)],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Total Paid',
+                                style: TextStyle(fontSize: 14, color: Colors.white70),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Rs. ${totalSpent.toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Total Paid',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.white70,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Rs. 8,400',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
                             color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xFFFF6B35).withOpacity(0.3)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Refunded',
+                                style: TextStyle(fontSize: 14, color: Color(0xFF2C3E50)),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Rs. ${totalRefunded.toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFFF6B35),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFFF6B35).withOpacity(0.3)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Refunded',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF2C3E50),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Rs. 500',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFFFF6B35),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Recent Transactions Title
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Text(
-              'Recent Transactions',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF2C3E50),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
-          ),
 
-          // Transactions List
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                _buildTransactionTile(
-                  title: 'Electric Pro Services',
-                  amount: '-Rs. 2,100',
-                  date: '10 May',
-                  method: 'Card',
-                  status: 'Paid',
-                  statusColor: const Color(0xFF27AE60),
-                  icon: Icons.electric_bolt,
+            // Recent Transactions Title
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Text(
+                'Recent Transactions',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF2C3E50),
                 ),
-                const SizedBox(height: 10),
-                _buildTransactionTile(
-                  title: 'Plumber',
-                  amount: '+Rs. 500',
-                  date: '8 May',
-                  method: 'eSewa',
-                  status: 'Refunded',
-                  statusColor: const Color(0xFFFF6B35),
-                  icon: Icons.plumbing,
-                  isRefund: true,
-                ),
-                const SizedBox(height: 10),
-                _buildTransactionTile(
-                  title: 'Clean Home Nepal',
-                  amount: '-Rs. 800',
-                  date: '5 May',
-                  method: 'Khalti',
-                  status: 'Paid',
-                  statusColor: const Color(0xFF27AE60),
-                  icon: Icons.cleaning_services,
-                ),
-                const SizedBox(height: 10),
-                _buildTransactionTile(
-                  title: 'AC Repair ArcticCool',
-                  amount: '-Rs. 2,000',
-                  date: '2 May',
-                  method: 'Cash',
-                  status: 'Pending',
-                  statusColor: Colors.orange,
-                  icon: Icons.ac_unit,
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
+
+            // Transactions List
+            Expanded(
+              child: viewModel.isLoading && viewModel.transactions.isEmpty
+                  ? const Center(child: CircularProgressIndicator())
+                  : viewModel.transactions.isEmpty
+                      ? const Center(child: Text('No transactions yet'))
+                      : ListView.separated(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: viewModel.transactions.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 10),
+                          itemBuilder: (context, index) {
+                            final transaction = viewModel.transactions[index];
+                            return _buildTransactionTile(transaction);
+                          },
+                        ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildTransactionTile({
-    required String title,
-    required String amount,
-    required String date,
-    required String method,
-    required String status,
-    required Color statusColor,
-    required IconData icon,
-    bool isRefund = false,
-  }) {
+  Widget _buildTransactionTile(TransactionModel transaction) {
+    final isDebit = transaction.amount < 0;
+    final isRefund = transaction.type == 'refund';
+    final statusColor = transaction.status == 'completed'
+        ? const Color(0xFF27AE60)
+        : transaction.status == 'pending'
+            ? Colors.orange
+            : Colors.red;
+
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -204,7 +193,7 @@ class TransactionScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
-                icon,
+                _iconForType(transaction.type),
                 color: isRefund ? const Color(0xFFFF6B35) : const Color(0xFF2C3E50),
                 size: 24,
               ),
@@ -215,7 +204,7 @@ class TransactionScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    transaction.description ?? transaction.type,
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
@@ -224,11 +213,8 @@ class TransactionScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '$date · $method',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
+                    _formatDate(transaction.createdAt),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                 ],
               ),
@@ -237,7 +223,7 @@ class TransactionScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  amount,
+                  '${isDebit ? '-' : '+'}Rs. ${transaction.amount.abs().toStringAsFixed(0)}',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -252,7 +238,7 @@ class TransactionScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    status,
+                    transaction.status,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
@@ -266,5 +252,30 @@ class TransactionScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  IconData _iconForType(String type) {
+    switch (type) {
+      case 'add_money':
+        return Icons.add_circle_outline_rounded;
+      case 'send_money':
+        return Icons.arrow_upward_rounded;
+      case 'receive_money':
+        return Icons.arrow_downward_rounded;
+      case 'refund':
+        return Icons.replay_rounded;
+      case 'payment':
+        return Icons.shopping_bag_outlined;
+      default:
+        return Icons.swap_horiz_rounded;
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${date.day} ${months[date.month - 1]}';
   }
 }

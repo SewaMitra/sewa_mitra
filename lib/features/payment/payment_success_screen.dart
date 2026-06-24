@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:go_router/go_router.dart';
-import '../../shared/models/models.dart';
 
 class PaymentSuccessScreen extends StatelessWidget {
   final double amount;
@@ -234,11 +232,11 @@ class PaymentSuccessScreen extends StatelessWidget {
                   ),
                 ),
                 const Divider(height: 24),
-                _buildInvoiceRow('Booking ID', '#${bookingId ?? 'N/A'}'),
-                _buildInvoiceRow('Service', serviceName ?? 'N/A'),
+                _buildInvoiceRow('Booking ID', '#$bookingId'),
+                _buildInvoiceRow('Service', serviceName),
                 _buildInvoiceRow('Amount', 'Rs. ${amount.toStringAsFixed(0)}'),
-                _buildInvoiceRow('Payment Method', method ?? 'Unknown'),
-                _buildInvoiceRow('Transaction ID', transactionId ?? 'N/A'),
+                _buildInvoiceRow('Payment Method', method),
+                _buildInvoiceRow('Transaction ID', transactionId),
                 _buildInvoiceRow('Date', DateFormat('dd MMM yyyy').format(DateTime.now())),
                 const Divider(height: 24),
                 _buildInvoiceRow(

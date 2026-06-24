@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'payment_success_screen.dart';
-import '../../shared/models/models.dart';
+import '../../services/payment_service.dart';
+import '../../viewmodels/wallet_viewmodel.dart';
 
 class CardPaymentScreen extends StatefulWidget {
   final double amount;
@@ -27,6 +29,8 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
   final _cardHolderController = TextEditingController();
   final _expiryController = TextEditingController();
   final _cvvController = TextEditingController();
+  final PaymentService _paymentService = PaymentService();
+  bool _isProcessing = false;
 
   @override
   void dispose() {
@@ -37,35 +41,45 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
     super.dispose();
   }
 
-  void processPayment() {
-    if (_formKey.currentState!.validate()) {
-      // Add booking data before navigating
-      final newBooking = Booking(
-        id: widget.bookingId,
-        serviceName: widget.serviceName,
-        providerName: 'Professional Provider',
-        date: widget.date,
-        time: widget.time,
-        address: 'Kathmandu, Nepal',
-        amount: widget.amount,
-      );
-      BookingData.addBooking(newBooking);
+  Future<void> processPayment() async {
+    if (!_formKey.currentState!.validate()) return;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PaymentSuccessScreen(
-            amount: widget.amount,
-            bookingId: widget.bookingId,
-            serviceName: widget.serviceName,
-            transactionId: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-            method: 'Credit Card',
-            bookingDate: widget.date,
-            bookingTime: widget.time,
-          ),
-        ),
+    setState(() => _isProcessing = true);
+
+    final result = await _paymentService.processPayment(
+      bookingId: widget.bookingId,
+      amount: widget.amount,
+      method: 'Credit Card',
+    );
+
+    if (!mounted) return;
+    setState(() => _isProcessing = false);
+
+    if (result['success'] != true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['error'] ?? 'Payment failed')),
       );
+      return;
     }
+
+    if (widget.bookingId.startsWith('wallet_')) {
+      context.read<WalletViewModel>().refresh();
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentSuccessScreen(
+          amount: widget.amount,
+          bookingId: widget.bookingId,
+          serviceName: widget.serviceName,
+          transactionId: result['paymentId'] ?? 'TXN${DateTime.now().millisecondsSinceEpoch}',
+          method: 'Credit Card',
+          bookingDate: widget.date,
+          bookingTime: widget.time,
+        ),
+      ),
+    );
   }
 
   @override
@@ -219,17 +233,23 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: processPayment,
+                  onPressed: _isProcessing ? null : processPayment,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryOrange,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Pay Now',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  child: _isProcessing
+                      ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                        )
+                      : const Text(
+                          'Pay Now',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
                 ),
               ),
             ],

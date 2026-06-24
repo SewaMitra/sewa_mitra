@@ -1,10 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../viewmodels/provider_viewmodel.dart';
+import '../../shared/models/backend_models.dart';
 
-class ProviderManagementScreen extends StatelessWidget {
+class ProviderManagementScreen extends StatefulWidget {
   const ProviderManagementScreen({super.key});
 
   @override
+  State<ProviderManagementScreen> createState() => _ProviderManagementScreenState();
+}
+
+class _ProviderManagementScreenState extends State<ProviderManagementScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final viewModel = context.read<ProviderViewModel>();
+      viewModel.loadAllProviders(activeOnly: false);
+      viewModel.loadAllApplications(status: 'pending');
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<ProviderViewModel>();
+    final providers = viewModel.providers;
+
+    final verifiedCount = providers.where((p) => p.isVerified && p.isActive).length;
+    final pendingCount = providers.where((p) => !p.isVerified).length;
+    final suspendedCount = providers.where((p) => !p.isActive).length;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
@@ -17,142 +42,124 @@ class ProviderManagementScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: false,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      title: 'Providers',
-                      value: '86',
-                      color: const Color(0xFF2C3E50),
-                      icon: Icons.build,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          viewModel.loadAllProviders(activeOnly: false);
+        },
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        title: 'Providers',
+                        value: '${providers.length}',
+                        color: const Color(0xFF2C3E50),
+                        icon: Icons.build,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildStatCard(
-                      title: 'Verified',
-                      value: '71',
-                      color: const Color(0xFF27AE60),
-                      icon: Icons.verified,
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildStatCard(
+                        title: 'Verified',
+                        value: '$verifiedCount',
+                        color: const Color(0xFF27AE60),
+                        icon: Icons.verified,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildStatCard(
-                      title: 'Pending',
-                      value: '12',
-                      color: const Color(0xFFFF6B35),
-                      icon: Icons.pending_actions,
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildStatCard(
+                        title: 'Pending',
+                        value: '$pendingCount',
+                        color: const Color(0xFFFF6B35),
+                        icon: Icons.pending_actions,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _buildStatCard(
-                title: 'Suspended',
-                value: '3',
-                color: Colors.red.shade600,
-                icon: Icons.block,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              child: Text(
-                'Service Providers',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF2C3E50),
+                  ],
                 ),
               ),
-            ),
-            _buildProviderCard(
-              context: context,
-              name: 'Electric Pro Services',
-              category: 'Electrical',
-              rating: 4.8,
-              jobs: 120,
-              status: 'Active',
-              statusColor: const Color(0xFF27AE60),
-              startingPrice: null,
-            ),
-            const SizedBox(height: 12),
-            _buildProviderCard(
-              context: context,
-              name: 'Quick Fix Plumbing',
-              category: 'Plumber',
-              rating: 4.6,
-              reviews: 87,
-              status: 'Active',
-              statusColor: const Color(0xFF27AE60),
-              startingPrice: 400,
-            ),
-            const SizedBox(height: 12),
-            _buildProviderCard(
-              context: context,
-              name: 'Sparkle Clean Services',
-              category: 'Cleaning',
-              rating: 4.5,
-              reviews: 64,
-              status: 'Pending',
-              statusColor: const Color(0xFFFF6B35),
-              startingPrice: 800,
-            ),
-            const SizedBox(height: 12),
-            _buildProviderCard(
-              context: context,
-              name: 'Arctic Cool AC Repair',
-              category: 'AC Repair',
-              rating: 4.7,
-              reviews: 53,
-              status: 'Active',
-              statusColor: const Color(0xFF27AE60),
-              startingPrice: 700,
-            ),
-            const SizedBox(height: 12),
-            _buildProviderCard(
-              context: context,
-              name: 'Smart Home Solutions',
-              category: 'Smart Devices',
-              rating: 4.9,
-              reviews: 42,
-              status: 'Suspended',
-              statusColor: Colors.red.shade600,
-              startingPrice: 500,
-            ),
-            const SizedBox(height: 12),
-            _buildProviderCard(
-              context: context,
-              name: 'Garden Experts',
-              category: 'Gardening',
-              rating: 4.4,
-              reviews: 38,
-              status: 'Active',
-              statusColor: const Color(0xFF27AE60),
-              startingPrice: 600,
-            ),
-            const SizedBox(height: 12),
-            _buildProviderCard(
-              context: context,
-              name: 'Tech Repair Pros',
-              category: 'Electronics',
-              rating: 4.9,
-              reviews: 45,
-              status: 'Pending',
-              statusColor: const Color(0xFFFF6B35),
-              startingPrice: 500,
-            ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _buildStatCard(
+                  title: 'Suspended',
+                  value: '$suspendedCount',
+                  color: Colors.red.shade600,
+                  icon: Icons.block,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                child: Text(
+                  'Pending Applications',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF2C3E50),
+                  ),
+                ),
+              ),
+              if (viewModel.applications.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Text('No pending applications', style: TextStyle(color: Colors.grey)),
+                )
+              else
+                ...viewModel.applications.map((application) {
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+                    child: _buildApplicationCard(context, application),
+                  );
+                }),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                child: Text(
+                  'Service Providers',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF2C3E50),
+                  ),
+                ),
+              ),
+              if (viewModel.isLoading && providers.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (providers.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40),
+                  child: Center(child: Text('No providers yet')),
+                )
+              else
+                ...providers.map((provider) {
+                  final status = !provider.isActive
+                      ? 'Suspended'
+                      : (!provider.isVerified ? 'Pending' : 'Active');
+                  final statusColor = status == 'Active'
+                      ? const Color(0xFF27AE60)
+                      : status == 'Pending'
+                          ? const Color(0xFFFF6B35)
+                          : Colors.red.shade600;
 
-            const SizedBox(height: 20),
-          ],
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _buildProviderCard(
+                      context: context,
+                      provider: provider,
+                      status: status,
+                      statusColor: statusColor,
+                    ),
+                  );
+                }),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );
@@ -212,14 +219,9 @@ class ProviderManagementScreen extends StatelessWidget {
 
   Widget _buildProviderCard({
     required BuildContext context,
-    required String name,
-    required String category,
-    required double rating,
+    required ProviderModel provider,
     required String status,
     required Color statusColor,
-    int? jobs,
-    int? reviews,
-    int? startingPrice,
   }) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -246,7 +248,7 @@ class ProviderManagementScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      name,
+                      provider.businessName,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -263,7 +265,7 @@ class ProviderManagementScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            category,
+                            provider.category,
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
@@ -277,26 +279,17 @@ class ProviderManagementScreen extends StatelessWidget {
                             const Icon(Icons.star, color: Color(0xFFFF6B35), size: 14),
                             const SizedBox(width: 2),
                             Text(
-                              rating.toString(),
+                              provider.rating.toStringAsFixed(1),
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            if (jobs != null) ...[
-                              const SizedBox(width: 4),
-                              Text(
-                                '($jobs jobs)',
-                                style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                              ),
-                            ],
-                            if (reviews != null) ...[
-                              const SizedBox(width: 4),
-                              Text(
-                                '($reviews reviews)',
-                                style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                              ),
-                            ],
+                            const SizedBox(width: 4),
+                            Text(
+                              '(${provider.totalJobs} jobs)',
+                              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                            ),
                           ],
                         ),
                       ],
@@ -321,16 +314,14 @@ class ProviderManagementScreen extends StatelessWidget {
               ),
             ],
           ),
-          if (startingPrice != null) ...[
-            const SizedBox(height: 12),
-            Text(
-              'Starts from Rs. $startingPrice',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+          const SizedBox(height: 12),
+          Text(
+            'Starts from Rs. ${provider.basePrice.toStringAsFixed(0)}',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
             ),
-          ],
+          ),
           const SizedBox(height: 16),
           Divider(color: Colors.grey[200]),
           const SizedBox(height: 12),
@@ -339,9 +330,7 @@ class ProviderManagementScreen extends StatelessWidget {
               if (status == 'Active') ...[
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () {
-                      _showSuspendDialog(context, name);
-                    },
+                    onPressed: () => _showSuspendDialog(context, provider),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: Colors.red.shade600),
                       foregroundColor: Colors.red.shade600,
@@ -352,58 +341,24 @@ class ProviderManagementScreen extends StatelessWidget {
                     child: const Text('Suspend'),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _showApproveDialog(context, name);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF27AE60),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('Approve'),
-                  ),
-                ),
               ] else if (status == 'Pending') ...[
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () {
-                      _showRejectDialog(context, name);
-                    },
+                    onPressed: () => _showApproveDialog(context, provider),
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.red.shade600),
-                      foregroundColor: Colors.red.shade600,
+                      side: BorderSide(color: const Color(0xFF27AE60)),
+                      foregroundColor: const Color(0xFF27AE60),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text('Reject'),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _showApproveDialog(context, name);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF27AE60),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('Approve'),
+                    child: const Text('Verify'),
                   ),
                 ),
               ] else if (status == 'Suspended') ...[
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () {
-                      _showRestoreDialog(context, name);
-                    },
+                    onPressed: () => _showRestoreDialog(context, provider),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: const Color(0xFF27AE60)),
                       foregroundColor: const Color(0xFF27AE60),
@@ -414,29 +369,11 @@ class ProviderManagementScreen extends StatelessWidget {
                     child: const Text('Restore'),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      _showProviderDetails(context, name, category, rating);
-                    },
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: const Color(0xFFFF6B35)),
-                      foregroundColor: const Color(0xFFFF6B35),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('Details'),
-                  ),
-                ),
               ],
               const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () {
-                    _showProviderDetails(context, name, category, rating);
-                  },
+                  onPressed: () => _showProviderDetails(context, provider),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: const Color(0xFFFF6B35)),
                     foregroundColor: const Color(0xFFFF6B35),
@@ -454,54 +391,98 @@ class ProviderManagementScreen extends StatelessWidget {
     );
   }
 
-  void _showSuspendDialog(BuildContext context, String providerName) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Suspend Provider'),
-        content: Text('Are you sure you want to suspend $providerName?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+  Widget _buildApplicationCard(BuildContext context, ProviderApplicationModel application) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFF6B35).withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('$providerName has been suspended')),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade600,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: const Text('Suspend'),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            application.fullName,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2C3E50)),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${application.category} · ${application.phone}',
+            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            application.description,
+            style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _showRejectApplicationDialog(context, application),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.red.shade600),
+                    foregroundColor: Colors.red.shade600,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Reject'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _showApproveApplicationDialog(context, application),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF27AE60),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Approve'),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  void _showApproveDialog(BuildContext context, String providerName) {
+  void _showApproveApplicationDialog(BuildContext context, ProviderApplicationModel application) {
     showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Approve Provider'),
-        content: Text('Approve $providerName to start offering services?'),
+        title: const Text('Approve Application'),
+        content: Text('Approve ${application.fullName} to start offering services?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('$providerName has been approved')),
-              );
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              final viewModel = context.read<ProviderViewModel>();
+              final success = await viewModel.approveApplication(application.id);
+              if (context.mounted) {
+                viewModel.loadAllApplications(status: 'pending');
+                viewModel.loadAllProviders(activeOnly: false);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(success
+                        ? '${application.fullName} has been approved'
+                        : 'Failed to approve application'),
+                  ),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF27AE60),
@@ -514,24 +495,53 @@ class ProviderManagementScreen extends StatelessWidget {
     );
   }
 
-  void _showRejectDialog(BuildContext context, String providerName) {
+  void _showRejectApplicationDialog(BuildContext context, ProviderApplicationModel application) {
+    final reasonController = TextEditingController();
     showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Reject Application'),
-        content: Text('Reject $providerName\'s application?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Reject ${application.fullName}\'s application?'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: reasonController,
+              decoration: const InputDecoration(
+                hintText: 'Reason (optional)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('$providerName\'s application rejected')),
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              final viewModel = context.read<ProviderViewModel>();
+              final success = await viewModel.rejectApplication(
+                application.id,
+                reasonController.text.trim().isEmpty
+                    ? 'Application did not meet requirements'
+                    : reasonController.text.trim(),
               );
+              if (context.mounted) {
+                viewModel.loadAllApplications(status: 'pending');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(success
+                        ? '${application.fullName}\'s application rejected'
+                        : 'Failed to reject application'),
+                  ),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade600,
@@ -544,24 +554,111 @@ class ProviderManagementScreen extends StatelessWidget {
     );
   }
 
-  void _showRestoreDialog(BuildContext context, String providerName) {
+  void _showSuspendDialog(BuildContext context, ProviderModel provider) {
     showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Restore Provider'),
-        content: Text('Restore $providerName to active status?'),
+        title: const Text('Suspend Provider'),
+        content: Text('Are you sure you want to suspend ${provider.businessName}?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('$providerName has been restored')),
-              );
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              final success = await context
+                  .read<ProviderViewModel>()
+                  .suspendProvider(provider.userId, 'Suspended by admin');
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(success
+                        ? '${provider.businessName} has been suspended'
+                        : 'Failed to suspend provider'),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade600,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Suspend'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showApproveDialog(BuildContext context, ProviderModel provider) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Verify Provider'),
+        content: Text('Mark ${provider.businessName} as verified?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              final success = await context
+                  .read<ProviderViewModel>()
+                  .updateProfile({'isVerified': true});
+              if (context.mounted) {
+                context.read<ProviderViewModel>().loadAllProviders(activeOnly: false);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(success
+                        ? '${provider.businessName} has been verified'
+                        : 'Failed to verify provider'),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF27AE60),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Verify'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRestoreDialog(BuildContext context, ProviderModel provider) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Restore Provider'),
+        content: Text('Restore ${provider.businessName} to active status?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              final success =
+                  await context.read<ProviderViewModel>().restoreProvider(provider.userId);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(success
+                        ? '${provider.businessName} has been restored'
+                        : 'Failed to restore provider'),
+                  ),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF27AE60),
@@ -574,34 +671,34 @@ class ProviderManagementScreen extends StatelessWidget {
     );
   }
 
-  void _showProviderDetails(BuildContext context, String name, String category, double rating) {
+  void _showProviderDetails(BuildContext context, ProviderModel provider) {
     showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(name),
+        title: Text(provider.businessName),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildDetailRow('Category', category),
+            _buildDetailRow('Category', provider.category),
             const SizedBox(height: 8),
-            _buildDetailRow('Rating', rating.toString()),
+            _buildDetailRow('Rating', provider.rating.toStringAsFixed(1)),
             const SizedBox(height: 8),
-            _buildDetailRow('Total Jobs', '156'),
+            _buildDetailRow('Total Jobs', '${provider.totalJobs}'),
             const SizedBox(height: 8),
-            _buildDetailRow('Completed', '142'),
+            _buildDetailRow('Completion Rate', '${provider.completionRate.toStringAsFixed(0)}%'),
             const SizedBox(height: 8),
-            _buildDetailRow('Joined', 'March 2025'),
+            _buildDetailRow('Joined', _formatDate(provider.createdAt)),
             const SizedBox(height: 8),
-            _buildDetailRow('Phone', '+977 98XXXXXXXX'),
+            _buildDetailRow('Phone', provider.phone),
             const SizedBox(height: 8),
-            _buildDetailRow('Email', '${name.toLowerCase().replaceAll(' ', '')}@email.com'),
+            _buildDetailRow('Email', provider.email),
           ],
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Close'),
           ),
         ],
@@ -617,15 +714,26 @@ class ProviderManagementScreen extends StatelessWidget {
           label,
           style: TextStyle(fontSize: 13, color: Colors.grey[600]),
         ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF2C3E50),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF2C3E50),
+            ),
           ),
         ),
       ],
     );
+  }
+
+  String _formatDate(DateTime date) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${months[date.month - 1]} ${date.year}';
   }
 }

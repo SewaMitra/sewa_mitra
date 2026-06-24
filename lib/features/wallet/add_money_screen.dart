@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme.dart';
-import '../../shared/models/models.dart';
+import '../../viewmodels/wallet_viewmodel.dart';
 
 class AddMoneyScreen extends StatefulWidget {
   const AddMoneyScreen({super.key});
@@ -19,7 +20,13 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
     {'name': 'Credit Card', 'icon': Icons.credit_card, 'color': AppTheme.primaryOrange},
   ];
 
-  void _addMoney() {
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _addMoney() async {
     final double? amount = double.tryParse(_amountController.text);
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -34,15 +41,31 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
       return;
     }
 
-    WalletData.addMoney(amount);
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Successfully added Rs. $amount to your wallet')),
+    final viewModel = context.read<WalletViewModel>();
+    final success = await viewModel.addMoney(
+      amount: amount,
+      method: _selectedMethod!,
+      description: 'Added money via $_selectedMethod',
     );
+
+    if (!mounted) return;
+
+    if (success) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Successfully added Rs. $amount to your wallet')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(viewModel.error ?? 'Failed to add money')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isProcessing = context.watch<WalletViewModel>().isProcessing;
+
     return Scaffold(
       backgroundColor: AppTheme.bgColor,
       appBar: AppBar(
@@ -112,14 +135,20 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: _addMoney,
+                onPressed: isProcessing ? null : _addMoney,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryOrange,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   elevation: 0,
                 ),
-                child: const Text('Add Money', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: isProcessing
+                    ? const SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                      )
+                    : const Text('Add Money', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
           ],

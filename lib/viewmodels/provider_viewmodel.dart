@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/provider_service.dart';
-import '../models/backend_models.dart';
+import 'package:sewa_mitra/shared/models/backend_models.dart';
 
 class ProviderViewModel extends ChangeNotifier {
   final ProviderService _providerService = ProviderService();
@@ -8,6 +8,7 @@ class ProviderViewModel extends ChangeNotifier {
   ProviderModel? _provider;
   ProviderApplicationModel? _application;
   List<ProviderModel> _providers = [];
+  List<ProviderApplicationModel> _applications = [];
   List<EarningModel> _earnings = [];
   Map<String, double> _earningSummary = {};
 
@@ -19,6 +20,7 @@ class ProviderViewModel extends ChangeNotifier {
   ProviderModel? get provider => _provider;
   ProviderApplicationModel? get application => _application;
   List<ProviderModel> get providers => _providers;
+  List<ProviderApplicationModel> get applications => _applications;
   List<EarningModel> get earnings => _earnings;
   Map<String, double> get earningSummary => _earningSummary;
   bool get isLoading => _isLoading;
@@ -248,7 +250,7 @@ class ProviderViewModel extends ChangeNotifier {
   // Load all applications (admin)
   void loadAllApplications({String? status}) {
     _providerService.getAllApplications(status: status).listen((applications) {
-      // Convert to list and store
+      _applications = applications;
       notifyListeners();
     });
   }
