@@ -1,13 +1,20 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/theme.dart';
 import '../../services/auth_service.dart';
+import '../../services/firebase_service.dart';
+import '../../services/payment_service.dart';
+import '../../shared/models/user_model.dart';
+import '../../shared/models/backend_models.dart';
 import '../provider/join_provider_screen.dart';
 import '../provider/earning_screen.dart';
 import '../wallet/transaction_screen.dart';
 import '../admin/user_management_screen.dart';
 import '../provider/provider_management_screen.dart';
+import '../profile/settings_screen.dart';
+
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -20,6 +27,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _name = 'Loading...';
   String _email = '';
   String? _photoUrl;
+  String? _photoBase64;
   String _role = 'customer';
   bool _isLoading = true;
 
@@ -37,6 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _name = profile['fullName'] ?? 'User';
           _email = profile['email'] ?? '';
           _photoUrl = profile['photoUrl'];
+          _photoBase64 = profile['photoBase64'];
           _role = profile['role'] ?? 'customer';
         } else {
           final user = AuthService.currentUser;
@@ -59,6 +68,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _name = result['name'] ?? _name;
         _email = result['email'] ?? _email;
         _photoUrl = result['photoUrl'] ?? _photoUrl;
+        _photoBase64 = result['photoBase64'] ?? _photoBase64;
       });
     }
   }
@@ -76,10 +86,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () async {
-              // 1. Close the dialog first
               Navigator.of(context, rootNavigator: true).pop();
-              
-              // 2. Sign out (this triggers GoRouter to redirect to /login)
               await AuthService.signOut();
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -88,6 +95,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildAvatar() {
+    if (_photoBase64 != null && _photoBase64!.isNotEmpty) {
+      try {
+        final bytes = base64Decode(_photoBase64!.split(',').last);
+        return Image.memory(bytes, fit: BoxFit.cover);
+      } catch (_) {}
+    }
+    if (_photoUrl != null && _photoUrl!.isNotEmpty) {
+      return Image.network(_photoUrl!, fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) =>
+              const Icon(Icons.person_rounded, color: AppTheme.primaryOrange, size: 50));
+    }
+    return const Icon(Icons.person_rounded, color: AppTheme.primaryOrange, size: 50);
   }
 
   @override
@@ -107,15 +129,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       width: 90,
                       height: 90,
                       decoration: const BoxDecoration(
-                        color: AppTheme.lightOrange,
-                        shape: BoxShape.circle,
-                      ),
+                          color: AppTheme.lightOrange, shape: BoxShape.circle),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(45),
-                        child: _photoUrl != null && _photoUrl!.isNotEmpty
-                            ? Image.network(_photoUrl!, fit: BoxFit.cover)
-                            : const Icon(Icons.person_rounded,
-                                color: AppTheme.primaryOrange, size: 50),
+                        child: _buildAvatar(),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -126,17 +143,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             color: AppTheme.darkText)),
                     const SizedBox(height: 4),
                     Text(_email,
-                        style: const TextStyle(
-                            fontSize: 14, color: AppTheme.greyText)),
+                        style: const TextStyle(fontSize: 14, color: AppTheme.greyText)),
                     const SizedBox(height: 28),
 
-                    // ── Menu items ──────────────────────────────────────────────
+                    // ── Menu items ──────────────────────────────────────────
                     _ProfileTile(
                       icon: Icons.edit_rounded,
                       label: 'Edit Profile',
                       onTap: () => _navigateTo(
                         EditProfileScreen(
-                            name: _name, email: _email, photoUrl: _photoUrl),
+                            name: _name, email: _email, photoUrl: _photoUrl, photoBase64: _photoBase64),
                       ),
                     ),
 
@@ -216,13 +232,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       isDestructive: true,
                     ),
                     const SizedBox(height: 24),
-            ],
-          ),
-        ),
+                  ],
+                ),
+              ),
       ),
     );
   }
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  SHARED WIDGETS
+// ══════════════════════════════════════════════════════════════════════════════
 
 class _ProfileTile extends StatelessWidget {
   final IconData icon;
@@ -245,33 +265,49 @@ class _ProfileTile extends StatelessWidget {
         color: AppTheme.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
-          BoxShadow(
-              color: AppTheme.cardShadow,
-              blurRadius: 8,
-              offset: const Offset(0, 2)),
+          BoxShadow(color: AppTheme.cardShadow, blurRadius: 8, offset: const Offset(0, 2)),
         ],
       ),
       child: ListTile(
-        leading: Icon(icon,
-            color: isDestructive ? Colors.red : AppTheme.primaryOrange),
+        leading: Icon(icon, color: isDestructive ? Colors.red : AppTheme.primaryOrange),
         title: Text(label,
             style: TextStyle(
                 fontWeight: FontWeight.w500,
                 color: isDestructive ? Colors.red : AppTheme.darkText)),
-        trailing:
-            const Icon(Icons.chevron_right_rounded, color: AppTheme.greyText),
+        trailing: const Icon(Icons.chevron_right_rounded, color: AppTheme.greyText),
         onTap: onTap,
       ),
     );
   }
 }
 
+AppBar _buildAppBar(String title) => AppBar(
+      backgroundColor: AppTheme.bgColor,
+      elevation: 0,
+      centerTitle: true,
+      title: Text(title,
+          style: const TextStyle(
+              fontWeight: FontWeight.w700, fontSize: 18, color: AppTheme.darkText)),
+      iconTheme: const IconThemeData(color: AppTheme.darkText),
+    );
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  EDIT PROFILE SCREEN — fully connected to Firestore
+// ══════════════════════════════════════════════════════════════════════════════
+
 class EditProfileScreen extends StatefulWidget {
   final String name;
   final String email;
   final String? photoUrl;
-  const EditProfileScreen(
-      {super.key, required this.name, required this.email, this.photoUrl});
+  final String? photoBase64;
+
+  const EditProfileScreen({
+    super.key,
+    required this.name,
+    required this.email,
+    this.photoUrl,
+    this.photoBase64,
+  });
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -284,15 +320,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   File? _imageFile;
   String? _currentPhotoUrl;
+  String? _currentPhotoBase64;
   bool _isSaving = false;
+  bool _isLoadingPhone = true;
+
+  final _firebaseService = FirebaseService();
 
   @override
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController(text: widget.name);
     _emailCtrl = TextEditingController(text: widget.email);
-    _phoneCtrl = TextEditingController(text: '+977 9800000000');
+    _phoneCtrl = TextEditingController();
     _currentPhotoUrl = widget.photoUrl;
+    _currentPhotoBase64 = widget.photoBase64;
+    _loadPhoneFromFirestore();
+  }
+
+  Future<void> _loadPhoneFromFirestore() async {
+    final uid = AuthService.currentUser?.uid;
+    if (uid != null) {
+      final user = await _firebaseService.getUser(uid);
+      if (mounted) {
+        setState(() {
+          _phoneCtrl.text = user?.phone ?? '';
+          _isLoadingPhone = false;
+        });
+      }
+    } else {
+      setState(() => _isLoadingPhone = false);
+    }
   }
 
   @override
@@ -305,43 +362,73 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 60);
     if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
+      setState(() => _imageFile = File(pickedFile.path));
     }
   }
 
   Future<void> _save() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isSaving = true);
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isSaving = true);
 
+    try {
+      final uid = AuthService.currentUser?.uid;
+      if (uid == null) throw Exception('Not signed in');
+
+      String? newPhotoBase64 = _currentPhotoBase64;
       String? newPhotoUrl = _currentPhotoUrl;
 
+      // Upload photo as Base64 if a new image was picked
       if (_imageFile != null) {
-        newPhotoUrl = await AuthService.uploadProfileImage(_imageFile!);
+        newPhotoBase64 = await _firebaseService.uploadProfilePhoto(uid, _imageFile!);
+        newPhotoUrl = null; // clear old URL, base64 takes priority
       }
 
-      final result = await AuthService.updateProfile(
-        fullName: _nameCtrl.text.trim(),
-        photoUrl: newPhotoUrl,
-      );
+      // Update Firestore (fullName, phone, photo)
+      await _firebaseService.updateUserFields(uid, {
+        'fullName': _nameCtrl.text.trim(),
+        'phone': _phoneCtrl.text.trim(),
+        if (newPhotoBase64 != null) 'photoBase64': newPhotoBase64,
+        if (newPhotoUrl != null) 'photoUrl': newPhotoUrl,
+      });
 
-      setState(() => _isSaving = false);
+      // Also update Firebase Auth display name
+      await AuthService.updateProfile(fullName: _nameCtrl.text.trim());
 
-      if (result.success) {
+      if (mounted) {
         Navigator.pop(context, {
           'name': _nameCtrl.text.trim(),
           'email': _emailCtrl.text.trim(),
           'photoUrl': newPhotoUrl,
+          'photoBase64': newPhotoBase64,
         });
-      } else {
+      }
+    } catch (e) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result.errorMessage ?? 'Update failed')),
+          SnackBar(content: Text('Update failed: $e')),
         );
       }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
+  }
+
+  Widget _buildPhotoWidget() {
+    if (_imageFile != null) return Image.file(_imageFile!, fit: BoxFit.cover);
+    if (_currentPhotoBase64 != null && _currentPhotoBase64!.isNotEmpty) {
+      try {
+        final bytes = base64Decode(_currentPhotoBase64!.split(',').last);
+        return Image.memory(bytes, fit: BoxFit.cover);
+      } catch (_) {}
+    }
+    if (_currentPhotoUrl != null && _currentPhotoUrl!.isNotEmpty) {
+      return Image.network(_currentPhotoUrl!, fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) =>
+              const Icon(Icons.person_rounded, color: AppTheme.primaryOrange, size: 50));
+    }
+    return const Icon(Icons.person_rounded, color: AppTheme.primaryOrange, size: 50);
   }
 
   @override
@@ -366,14 +453,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           color: AppTheme.lightOrange, shape: BoxShape.circle),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(45),
-                        child: _imageFile != null
-                            ? Image.file(_imageFile!, fit: BoxFit.cover)
-                            : (_currentPhotoUrl != null &&
-                                    _currentPhotoUrl!.isNotEmpty
-                                ? Image.network(_currentPhotoUrl!,
-                                    fit: BoxFit.cover)
-                                : const Icon(Icons.person_rounded,
-                                    color: AppTheme.primaryOrange, size: 50)),
+                        child: _buildPhotoWidget(),
                       ),
                     ),
                     Positioned(
@@ -383,10 +463,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         width: 28,
                         height: 28,
                         decoration: const BoxDecoration(
-                            color: AppTheme.primaryOrange,
-                            shape: BoxShape.circle),
-                        child: const Icon(Icons.camera_alt,
-                            size: 14, color: Colors.white),
+                            color: AppTheme.primaryOrange, shape: BoxShape.circle),
+                        child: const Icon(Icons.camera_alt, size: 14, color: Colors.white),
                       ),
                     ),
                   ],
@@ -395,20 +473,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             const SizedBox(height: 28),
             _buildField('Full Name', _nameCtrl,
-                validator: (v) =>
-                    v!.trim().isEmpty ? 'Name is required' : null),
+                validator: (v) => v!.trim().isEmpty ? 'Name is required' : null),
             const SizedBox(height: 14),
             _buildField('Email', _emailCtrl,
-                enabled: false,
-                keyboardType: TextInputType.emailAddress,
-                validator: (v) {
-                  if (v!.trim().isEmpty) return 'Email is required';
-                  if (!v.contains('@')) return 'Enter a valid email';
-                  return null;
-                }),
+                enabled: false, keyboardType: TextInputType.emailAddress),
             const SizedBox(height: 14),
-            _buildField('Phone', _phoneCtrl,
-                keyboardType: TextInputType.phone),
+            _isLoadingPhone
+                ? const Center(child: CircularProgressIndicator())
+                : _buildField('Phone', _phoneCtrl, keyboardType: TextInputType.phone),
             const SizedBox(height: 28),
             ElevatedButton(
               onPressed: _isSaving ? null : _save,
@@ -416,18 +488,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 backgroundColor: AppTheme.primaryOrange,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: _isSaving
                   ? const SizedBox(
                       height: 20,
                       width: 20,
-                      child: CircularProgressIndicator(
-                          color: Colors.white, strokeWidth: 2))
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                   : const Text('Save Changes',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -444,9 +513,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       children: [
         Text(label,
             style: const TextStyle(
-                fontSize: 13,
-                color: AppTheme.greyText,
-                fontWeight: FontWeight.w500)),
+                fontSize: 13, color: AppTheme.greyText, fontWeight: FontWeight.w500)),
         const SizedBox(height: 6),
         TextFormField(
           controller: ctrl,
@@ -457,16 +524,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             filled: true,
             fillColor: enabled ? AppTheme.white : Colors.grey.shade200,
             border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
         ),
       ],
     );
   }
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  MY ADDRESSES SCREEN — Firestore backed with real-time stream
+// ══════════════════════════════════════════════════════════════════════════════
 
 class MyAddressesScreen extends StatefulWidget {
   const MyAddressesScreen({super.key});
@@ -476,38 +545,96 @@ class MyAddressesScreen extends StatefulWidget {
 }
 
 class _MyAddressesScreenState extends State<MyAddressesScreen> {
-  final List<Map<String, String>> _addresses = [
-    {'label': 'Home', 'address': 'Baneshwor, Kathmandu, Nepal'},
-    {'label': 'Work', 'address': 'Durbarmarg, Kathmandu, Nepal'},
-  ];
+  final _firebaseService = FirebaseService();
+  String? _uid;
 
-  void _addAddress() {
-    final ctrl = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    _uid = AuthService.currentUser?.uid;
+  }
+
+  void _addAddressDialog() {
+    final addressCtrl = TextEditingController();
+    String selectedLabel = 'Home';
+    final labels = ['Home', 'Work', 'Other'];
+
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Add Address'),
-        content: TextField(
-            controller: ctrl,
-            decoration:
-                const InputDecoration(hintText: 'Enter address')),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              if (ctrl.text.isNotEmpty) {
-                setState(() => _addresses
-                    .add({'label': 'Other', 'address': ctrl.text}));
-              }
-              Navigator.pop(context);
-            },
-            child: const Text('Add'),
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Add Address'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Label picker
+              Wrap(
+                spacing: 8,
+                children: labels.map((l) {
+                  final selected = selectedLabel == l;
+                  return ChoiceChip(
+                    label: Text(l),
+                    selected: selected,
+                    selectedColor: AppTheme.lightOrange,
+                    onSelected: (_) => setDialogState(() => selectedLabel = l),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: addressCtrl,
+                decoration: const InputDecoration(
+                  hintText: 'Enter full address',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
+              ),
+            ],
           ),
-        ],
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryOrange),
+              onPressed: () async {
+                if (addressCtrl.text.trim().isEmpty) return;
+                Navigator.pop(ctx);
+                if (_uid != null) {
+                  try {
+                    await _firebaseService.addAddress(
+                      _uid!,
+                      UserAddress(
+                        id: '',
+                        label: selectedLabel,
+                        address: addressCtrl.text.trim(),
+                      ),
+                    );
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to add address: $e')),
+                      );
+                    }
+                  }
+                }
+              },
+              child: const Text('Add', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Future<void> _deleteAddress(String addressId) async {
+    if (_uid == null) return;
+    try {
+      await _firebaseService.deleteAddress(_uid!, addressId);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
+      }
+    }
   }
 
   @override
@@ -517,49 +644,76 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
       appBar: _buildAppBar('My Addresses'),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppTheme.primaryOrange,
-        onPressed: _addAddress,
+        onPressed: _addAddressDialog,
         child: const Icon(Icons.add, color: Colors.white),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(20),
-        itemCount: _addresses.length,
-        itemBuilder: (_, i) {
-          final a = _addresses[i];
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(
-              color: AppTheme.white,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                    color: AppTheme.cardShadow,
-                    blurRadius: 8,
-                    offset: const Offset(0, 2))
-              ],
+      body: _uid == null
+          ? const Center(child: Text('Not signed in'))
+          : StreamBuilder<List<UserAddress>>(
+              stream: _firebaseService.addressStream(_uid!),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final addresses = snapshot.data ?? [];
+                if (addresses.isEmpty) {
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.location_off_outlined, size: 60, color: AppTheme.greyText),
+                        SizedBox(height: 12),
+                        Text('No addresses saved yet',
+                            style: TextStyle(color: AppTheme.greyText)),
+                      ],
+                    ),
+                  );
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.all(20),
+                  itemCount: addresses.length,
+                  itemBuilder: (_, i) {
+                    final a = addresses[i];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                              color: AppTheme.cardShadow,
+                              blurRadius: 8,
+                              offset: const Offset(0, 2))
+                        ],
+                      ),
+                      child: ListTile(
+                        leading: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: const BoxDecoration(
+                              color: AppTheme.lightOrange, shape: BoxShape.circle),
+                          child: const Icon(Icons.location_on, color: AppTheme.primaryOrange),
+                        ),
+                        title: Text(a.label,
+                            style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(a.address),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete_outline, color: Colors.red),
+                          onPressed: () => _deleteAddress(a.id),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
             ),
-            child: ListTile(
-              leading: Container(
-                width: 44,
-                height: 44,
-                decoration: const BoxDecoration(
-                    color: AppTheme.lightOrange, shape: BoxShape.circle),
-                child: const Icon(Icons.location_on,
-                    color: AppTheme.primaryOrange),
-              ),
-              title: Text(a['label']!,
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text(a['address']!),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete_outline, color: Colors.red),
-                onPressed: () => setState(() => _addresses.removeAt(i)),
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  PAYMENT METHODS SCREEN — real saved cards from Firestore
+// ══════════════════════════════════════════════════════════════════════════════
 
 class PaymentMethodsScreen extends StatefulWidget {
   const PaymentMethodsScreen({super.key});
@@ -569,208 +723,248 @@ class PaymentMethodsScreen extends StatefulWidget {
 }
 
 class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
-  final List<Map<String, dynamic>> _cards = [
-    {'name': 'Visa', 'last4': '4242', 'icon': Icons.credit_card},
-    {'name': 'Mastercard', 'last4': '5555', 'icon': Icons.credit_card_outlined},
-  ];
+  final _paymentService = PaymentService();
+  bool _isDeleting = false;
+
+  void _addCardDialog() {
+    final cardNumberCtrl = TextEditingController();
+    final holderCtrl = TextEditingController();
+    final expiryCtrl = TextEditingController();
+    final cvvCtrl = TextEditingController();
+    bool isSaving = false;
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Add New Card'),
+          content: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _dialogField('Card Number', cardNumberCtrl,
+                      keyboardType: TextInputType.number,
+                      validator: (v) => v!.length < 16 ? 'Enter valid card number' : null),
+                  const SizedBox(height: 10),
+                  _dialogField('Card Holder Name', holderCtrl,
+                      validator: (v) => v!.isEmpty ? 'Required' : null),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _dialogField('Expiry (MM/YY)', expiryCtrl,
+                            validator: (v) => v!.isEmpty ? 'Required' : null),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _dialogField('CVV', cvvCtrl,
+                            keyboardType: TextInputType.number,
+                            validator: (v) => v!.length < 3 ? 'Invalid' : null),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryOrange),
+              onPressed: isSaving
+                  ? null
+                  : () async {
+                      if (!formKey.currentState!.validate()) return;
+                      setDialogState(() => isSaving = true);
+                      final success = await _paymentService.saveCard(
+                        cardNumber: cardNumberCtrl.text.trim(),
+                        cardHolderName: holderCtrl.text.trim(),
+                        expiryDate: expiryCtrl.text.trim(),
+                        cvv: cvvCtrl.text.trim(),
+                      );
+                      if (ctx.mounted) Navigator.pop(ctx);
+                      if (mounted && !success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Failed to save card')),
+                        );
+                      }
+                    },
+              child: isSaving
+                  ? const SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Text('Save', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _dialogField(String hint, TextEditingController ctrl,
+      {TextInputType? keyboardType, String? Function(String?)? validator}) {
+    return TextFormField(
+      controller: ctrl,
+      keyboardType: keyboardType,
+      validator: validator,
+      decoration: InputDecoration(
+        labelText: hint,
+        border: const OutlineInputBorder(),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      ),
+    );
+  }
+
+  IconData _cardIcon(String type) {
+    switch (type.toLowerCase()) {
+      case 'visa':
+        return Icons.credit_card;
+      case 'mastercard':
+        return Icons.credit_card_outlined;
+      default:
+        return Icons.payment;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.bgColor,
       appBar: _buildAppBar('Payment Methods'),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          ..._cards.asMap().entries.map((e) {
-            final card = e.value;
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              decoration: BoxDecoration(
-                color: AppTheme.white,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                      color: AppTheme.cardShadow,
-                      blurRadius: 8,
-                      offset: const Offset(0, 2))
-                ],
-              ),
-              child: ListTile(
-                leading: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: const BoxDecoration(
-                      color: AppTheme.lightOrange, shape: BoxShape.circle),
-                  child: Icon(card['icon'] as IconData,
-                      color: AppTheme.primaryOrange),
+      body: StreamBuilder<List<SavedCardModel>>(
+        stream: _paymentService.getSavedCards(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final cards = snapshot.data ?? [];
+          return ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              if (cards.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 32),
+                  child: Column(
+                    children: const [
+                      Icon(Icons.credit_card_off_outlined,
+                          size: 60, color: AppTheme.greyText),
+                      SizedBox(height: 12),
+                      Text('No saved cards', style: TextStyle(color: AppTheme.greyText)),
+                    ],
+                  ),
                 ),
-                title: Text(card['name'] as String,
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text('•••• •••• •••• ${card['last4']}'),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
-                  onPressed: () =>
-                      setState(() => _cards.removeAt(e.key)),
+              ...cards.map((card) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: card.isDefault
+                        ? Border.all(color: AppTheme.primaryOrange, width: 1.5)
+                        : null,
+                    boxShadow: [
+                      BoxShadow(
+                          color: AppTheme.cardShadow,
+                          blurRadius: 8,
+                          offset: const Offset(0, 2))
+                    ],
+                  ),
+                  child: ListTile(
+                    leading: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: const BoxDecoration(
+                          color: AppTheme.lightOrange, shape: BoxShape.circle),
+                      child: Icon(_cardIcon(card.cardType), color: AppTheme.primaryOrange),
+                    ),
+                    title: Row(
+                      children: [
+                        Text(card.cardType.toUpperCase(),
+                            style: const TextStyle(fontWeight: FontWeight.bold)),
+                        if (card.isDefault) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppTheme.lightOrange,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text('Default',
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    color: AppTheme.primaryOrange,
+                                    fontWeight: FontWeight.bold)),
+                          ),
+                        ]
+                      ],
+                    ),
+                    subtitle: Text('${card.cardNumber}  •  Exp: ${card.expiryDate}'),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (value) async {
+                        if (value == 'default') {
+                          await _paymentService.setDefaultCard(card.id);
+                        } else if (value == 'delete') {
+                          setState(() => _isDeleting = true);
+                          await _paymentService.deleteCard(card.id);
+                          setState(() => _isDeleting = false);
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        if (!card.isDefault)
+                          const PopupMenuItem(
+                              value: 'default', child: Text('Set as Default')),
+                        const PopupMenuItem(
+                            value: 'delete',
+                            child: Text('Delete', style: TextStyle(color: Colors.red))),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: _addCardDialog,
+                icon: const Icon(Icons.add, color: AppTheme.primaryOrange),
+                label: const Text('Add New Card',
+                    style: TextStyle(color: AppTheme.primaryOrange)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: const BorderSide(color: AppTheme.primaryOrange),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
-            );
-          }),
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Add card feature coming soon'))),
-            icon: const Icon(Icons.add, color: AppTheme.primaryOrange),
-            label: const Text('Add New Card',
-                style: TextStyle(color: AppTheme.primaryOrange)),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              side: const BorderSide(color: AppTheme.primaryOrange),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
 }
 
-class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
-
-  @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends State<SettingsScreen> {
-  bool _notifications = true;
-  bool _emailUpdates = false;
-  bool _darkMode = false;
-  bool _locationAccess = true;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.bgColor,
-      appBar: _buildAppBar('Settings'),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          _sectionLabel('Notifications'),
-          _switchTile('Push Notifications', _notifications,
-              (v) => setState(() => _notifications = v)),
-          _switchTile('Email Updates', _emailUpdates,
-              (v) => setState(() => _emailUpdates = v)),
-          const SizedBox(height: 16),
-          _sectionLabel('Preferences'),
-          _switchTile('Dark Mode', _darkMode,
-              (v) => setState(() => _darkMode = v)),
-          _switchTile('Location Access', _locationAccess,
-              (v) => setState(() => _locationAccess = v)),
-          const SizedBox(height: 16),
-          _sectionLabel('Account'),
-          _actionTile('Change Password', Icons.lock_outline, () {
-            ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Coming soon')));
-          }),
-          _actionTile('Delete Account', Icons.delete_forever_outlined,
-              () {}, destructive: true),
-        ],
-      ),
-    );
-  }
-
-  Widget _sectionLabel(String text) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 8),
-        child: Text(text,
-            style: const TextStyle(
-                fontSize: 13,
-                color: AppTheme.greyText,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5)),
-      );
-
-  Widget _switchTile(
-      String label, bool value, ValueChanged<bool> onChanged) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: AppTheme.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-              color: AppTheme.cardShadow,
-              blurRadius: 8,
-              offset: const Offset(0, 2))
-        ],
-      ),
-      child: SwitchListTile(
-        title: Text(label,
-            style: const TextStyle(
-                fontWeight: FontWeight.w500, color: AppTheme.darkText)),
-        value: value,
-        onChanged: onChanged,
-        activeColor: AppTheme.primaryOrange,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      ),
-    );
-  }
-
-  Widget _actionTile(String label, IconData icon, VoidCallback onTap,
-      {bool destructive = false}) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: AppTheme.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-              color: AppTheme.cardShadow,
-              blurRadius: 8,
-              offset: const Offset(0, 2))
-        ],
-      ),
-      child: ListTile(
-        leading: Icon(icon,
-            color: destructive ? Colors.red : AppTheme.primaryOrange),
-        title: Text(label,
-            style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: destructive ? Colors.red : AppTheme.darkText)),
-        trailing: const Icon(Icons.chevron_right_rounded,
-            color: AppTheme.greyText),
-        onTap: onTap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      ),
-    );
-  }
-}
-
+// ══════════════════════════════════════════════════════════════════════════════
 class HelpSupportScreen extends StatelessWidget {
   const HelpSupportScreen({super.key});
 
   static const _faqs = [
     {
       'q': 'How do I book a service?',
-      'a':
-          'Go to Home, browse services, select one, choose a time slot, and confirm your booking.'
+      'a': 'Go to Home, browse services, select one, choose a time slot, and confirm your booking.'
     },
     {
       'q': 'How do I cancel a booking?',
-      'a':
-          'Go to Bookings tab, find your booking and tap "Cancel". Cancellations are free up to 2 hours before.'
+      'a': 'Go to Bookings tab, find your booking and tap "Cancel". Cancellations are free up to 2 hours before.'
     },
     {
       'q': 'How do I add a payment method?',
-      'a':
-          'Go to Profile → Payment Methods → Add New Card and enter your card details.'
+      'a': 'Go to Profile → Payment Methods → Add New Card and enter your card details.'
     },
     {
       'q': 'How do I change my address?',
-      'a':
-          'Go to Profile → My Addresses to add, edit or delete addresses.'
+      'a': 'Go to Profile → My Addresses to add, edit or delete addresses.'
     },
   ];
 
@@ -782,7 +976,6 @@ class HelpSupportScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          // Live chat banner
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -804,22 +997,18 @@ class HelpSupportScreen extends StatelessWidget {
                               fontSize: 16)),
                       SizedBox(height: 4),
                       Text('We typically reply within minutes',
-                          style:
-                              TextStyle(color: Colors.white70, fontSize: 13)),
+                          style: TextStyle(color: Colors.white70, fontSize: 13)),
                     ],
                   ),
                 ),
-                Icon(Icons.arrow_forward_ios,
-                    color: Colors.white, size: 16),
+                Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
               ],
             ),
           ),
           const SizedBox(height: 24),
           const Text('FAQs',
               style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.darkText)),
+                  fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.darkText)),
           const SizedBox(height: 12),
           ..._faqs.map(
             (faq) => Container(
@@ -840,15 +1029,12 @@ class HelpSupportScreen extends StatelessWidget {
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: AppTheme.darkText)),
-                childrenPadding:
-                    const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 expandedCrossAxisAlignment: CrossAxisAlignment.start,
                 iconColor: AppTheme.primaryOrange,
                 collapsedIconColor: AppTheme.greyText,
                 children: [
-                  Text(faq['a']!,
-                      style: const TextStyle(
-                          color: AppTheme.greyText, fontSize: 13))
+                  Text(faq['a']!, style: const TextStyle(color: AppTheme.greyText, fontSize: 13))
                 ],
               ),
             ),
@@ -856,17 +1042,13 @@ class HelpSupportScreen extends StatelessWidget {
           const SizedBox(height: 16),
           OutlinedButton.icon(
             onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Email: support@example.com'))),
-            icon: const Icon(Icons.email_outlined,
-                color: AppTheme.primaryOrange),
-            label: const Text('Email Support',
-                style: TextStyle(color: AppTheme.primaryOrange)),
+                const SnackBar(content: Text('Email: support@sewamitra.com'))),
+            icon: const Icon(Icons.email_outlined, color: AppTheme.primaryOrange),
+            label: const Text('Email Support', style: TextStyle(color: AppTheme.primaryOrange)),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
               side: const BorderSide(color: AppTheme.primaryOrange),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
         ],
@@ -874,15 +1056,3 @@ class HelpSupportScreen extends StatelessWidget {
     );
   }
 }
-
-AppBar _buildAppBar(String title) => AppBar(
-      backgroundColor: AppTheme.bgColor,
-      elevation: 0,
-      centerTitle: true,
-      title: Text(title,
-          style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 18,
-              color: AppTheme.darkText)),
-      iconTheme: const IconThemeData(color: AppTheme.darkText),
-    );
