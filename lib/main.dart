@@ -7,6 +7,7 @@ import 'firebase_options.dart';
 import 'viewmodels/wallet_viewmodel.dart';
 import 'viewmodels/provider_viewmodel.dart';
 import 'viewmodels/theme_viewmodel.dart';
+import 'viewmodels/user_viewmodel.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => WalletViewModel()),
         ChangeNotifierProvider(create: (_) => ProviderViewModel()),
         ChangeNotifierProvider(create: (_) => ThemeViewModel()),
+        ChangeNotifierProvider(create: (_) => UserViewModel()..init()),
       ],
       child: const _AppRoot(),
     );

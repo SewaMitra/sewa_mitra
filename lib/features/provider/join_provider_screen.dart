@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/provider_viewmodel.dart';
+import '../../viewmodels/user_viewmodel.dart';
 
 class JoinProviderScreen extends StatefulWidget {
   const JoinProviderScreen({super.key});
@@ -68,6 +69,7 @@ class _JoinProviderScreenState extends State<JoinProviderScreen> {
     setState(() => _isSubmitting = false);
 
     if (success) {
+      context.read<UserViewModel>().setProviderStatus(true);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Application submitted successfully!')),
       );

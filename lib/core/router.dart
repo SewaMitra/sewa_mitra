@@ -27,6 +27,7 @@ import '../features/admin/user_management_screen.dart';
 import '../features/admin/admin_dashboard_screen.dart';
 import '../features/provider/provider_management_screen.dart';
 import '../features/provider/join_provider_screen.dart';
+import '../features/provider/provider_dashboard_screen.dart';
 import '../main_container.dart';
 import '../services/auth_service.dart';
 
@@ -127,7 +128,12 @@ class AppRouter {
             name: 'profile',
             builder: (context, state) => const ProfileScreen(),
           ),
-
+          // Provider dashboard within Shell
+          GoRoute(
+            path: '/provider/dashboard',
+            name: 'provider-dashboard',
+            builder: (context, state) => const ProviderDashboardScreen(),
+          ),
           // ── Admin only routes ─────────────────────────────
           GoRoute(
             path: '/admin/dashboard',

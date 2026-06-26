@@ -2,19 +2,18 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/firebase_service.dart';
-import '../../services/payment_service.dart';
-import '../../shared/models/user_model.dart';
-import '../../shared/models/backend_models.dart';
+import '../../viewmodels/user_viewmodel.dart';
 import '../provider/join_provider_screen.dart';
 import '../provider/earning_screen.dart';
 import '../wallet/transaction_screen.dart';
 import '../admin/user_management_screen.dart';
 import '../provider/provider_management_screen.dart';
-import '../profile/settings_screen.dart';
-
+import 'settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -114,6 +113,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userVM = context.watch<UserViewModel>();
+
     return Scaffold(
       backgroundColor: AppTheme.bgColor,
       body: SafeArea(
@@ -123,7 +124,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
+                    // Mode Switcher Card
+                    if (userVM.isProvider && _role != 'admin')
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: userVM.activeMode == 'provider' ? const Color(0xFF1E293B) : Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              userVM.activeMode == 'provider' ? Icons.work_rounded : Icons.person_rounded,
+                              color: userVM.activeMode == 'provider' ? Colors.white : AppTheme.primaryOrange,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    userVM.activeMode == 'provider' ? 'Switch to Customer Mode' : 'Switch to Provider Mode',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: userVM.activeMode == 'provider' ? Colors.white : AppTheme.darkText,
+                                    ),
+                                  ),
+                                  Text(
+                                    userVM.activeMode == 'provider' ? 'Browse & book services' : 'Manage your business',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: userVM.activeMode == 'provider' ? Colors.white70 : AppTheme.greyText,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch.adaptive(
+                              value: userVM.activeMode == 'provider',
+                              activeColor: AppTheme.primaryOrange,
+                              onChanged: (v) async {
+                                await userVM.switchMode();
+                                if (mounted) {
+                                  context.go(userVM.activeMode == 'provider' ? '/provider/dashboard' : '/home');
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+
                     // Avatar
                     Container(
                       width: 90,
@@ -158,7 +213,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     // Customer & Provider only
                     if (_role != 'admin') ...[
-                      if (_role == 'customer')
+                      if (!userVM.isProvider)
                         _ProfileTile(
                           icon: Icons.work_rounded,
                           label: 'Join as Provider',
@@ -174,11 +229,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         label: 'Transactions',
                         onTap: () => _navigateTo(const TransactionScreen()),
                       ),
-                      if (_role == 'provider')
+                      if (userVM.isProvider)
                         _ProfileTile(
                           icon: Icons.analytics_outlined,
                           label: 'My Earnings',
-                          onTap: () => _navigateTo(const EarningScreen()),
+                          onTap: () => context.push('/provider/earnings'),
                         ),
                     ],
 
@@ -241,8 +296,119 @@ class _ProfileScreenState extends State<ProfileScreen> {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  SHARED WIDGETS
-// ══════════════════════════════════════════════════════════════════════════════
+class HelpSupportScreen extends StatelessWidget {
+  const HelpSupportScreen({super.key});
+
+  static const _faqs = [
+    {
+      'q': 'How do I book a service?',
+      'a': 'Go to Home, browse services, select one, choose a time slot, and confirm your booking.'
+    },
+    {
+      'q': 'How do I cancel a booking?',
+      'a': 'Go to Bookings tab, find your booking and tap "Cancel". Cancellations are free up to 2 hours before.'
+    },
+    {
+      'q': 'How do I add a payment method?',
+      'a': 'Go to Profile → Payment Methods → Add New Card and enter your card details.'
+    },
+    {
+      'q': 'How do I change my address?',
+      'a': 'Go to Profile → My Addresses to add, edit or delete addresses.'
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.bgColor,
+      appBar: _buildAppBar('Help & Support'),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryOrange,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: const [
+                Icon(Icons.support_agent, color: Colors.white, size: 36),
+                SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Chat with Us',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16)),
+                      SizedBox(height: 4),
+                      Text('We typically reply within minutes',
+                          style: TextStyle(color: Colors.white70, fontSize: 13)),
+                    ],
+                  ),
+                ),
+                Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text('FAQs',
+              style: TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.darkText)),
+          const SizedBox(height: 12),
+          ..._faqs.map(
+            (faq) => Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(
+                color: AppTheme.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                      color: AppTheme.cardShadow,
+                      blurRadius: 8,
+                      offset: const Offset(0, 2))
+                ],
+              ),
+              child: ExpansionTile(
+                title: Text(faq['q']!,
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.darkText)),
+                childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                iconColor: AppTheme.primaryOrange,
+                collapsedIconColor: AppTheme.greyText,
+                children: [
+                  Text(faq['a']!, style: const TextStyle(color: AppTheme.greyText, fontSize: 13))
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Email: support@sewamitra.com'))),
+            icon: const Icon(Icons.email_outlined, color: AppTheme.primaryOrange),
+            label: const Text('Email Support', style: TextStyle(color: AppTheme.primaryOrange)),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              side: const BorderSide(color: AppTheme.primaryOrange),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+// Rest of shared widgets (EditProfile, MyAddresses etc) remain here...
 
 class _ProfileTile extends StatelessWidget {
   final IconData icon;
@@ -281,6 +447,119 @@ class _ProfileTile extends StatelessWidget {
   }
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+class HelpSupportScreen extends StatelessWidget {
+  const HelpSupportScreen({super.key});
+
+  static const _faqs = [
+    {
+      'q': 'How do I book a service?',
+      'a': 'Go to Home, browse services, select one, choose a time slot, and confirm your booking.'
+    },
+    {
+      'q': 'How do I cancel a booking?',
+      'a': 'Go to Bookings tab, find your booking and tap "Cancel". Cancellations are free up to 2 hours before.'
+    },
+    {
+      'q': 'How do I add a payment method?',
+      'a': 'Go to Profile → Payment Methods → Add New Card and enter your card details.'
+    },
+    {
+      'q': 'How do I change my address?',
+      'a': 'Go to Profile → My Addresses to add, edit or delete addresses.'
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.bgColor,
+      appBar: _buildAppBar('Help & Support'),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryOrange,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: const [
+                Icon(Icons.support_agent, color: Colors.white, size: 36),
+                SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Chat with Us',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16)),
+                      SizedBox(height: 4),
+                      Text('We typically reply within minutes',
+                          style: TextStyle(color: Colors.white70, fontSize: 13)),
+                    ],
+                  ),
+                ),
+                Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text('FAQs',
+              style: TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.darkText)),
+          const SizedBox(height: 12),
+          ..._faqs.map(
+            (faq) => Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(
+                color: AppTheme.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                      color: AppTheme.cardShadow,
+                      blurRadius: 8,
+                      offset: const Offset(0, 2))
+                ],
+              ),
+              child: ExpansionTile(
+                title: Text(faq['q']!,
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.darkText)),
+                childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                iconColor: AppTheme.primaryOrange,
+                collapsedIconColor: AppTheme.greyText,
+                children: [
+                  Text(faq['a']!, style: const TextStyle(color: AppTheme.greyText, fontSize: 13))
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Email: support@sewamitra.com'))),
+            icon: const Icon(Icons.email_outlined, color: AppTheme.primaryOrange),
+            label: const Text('Email Support', style: TextStyle(color: AppTheme.primaryOrange)),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              side: const BorderSide(color: AppTheme.primaryOrange),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
 AppBar _buildAppBar(String title) => AppBar(
       backgroundColor: AppTheme.bgColor,
       elevation: 0,
@@ -290,10 +569,6 @@ AppBar _buildAppBar(String title) => AppBar(
               fontWeight: FontWeight.w700, fontSize: 18, color: AppTheme.darkText)),
       iconTheme: const IconThemeData(color: AppTheme.darkText),
     );
-
-// ══════════════════════════════════════════════════════════════════════════════
-//  EDIT PROFILE SCREEN — fully connected to Firestore
-// ══════════════════════════════════════════════════════════════════════════════
 
 class EditProfileScreen extends StatefulWidget {
   final String name;
@@ -379,13 +654,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       String? newPhotoBase64 = _currentPhotoBase64;
       String? newPhotoUrl = _currentPhotoUrl;
 
-      // Upload photo as Base64 if a new image was picked
       if (_imageFile != null) {
         newPhotoBase64 = await _firebaseService.uploadProfilePhoto(uid, _imageFile!);
-        newPhotoUrl = null; // clear old URL, base64 takes priority
+        newPhotoUrl = null;
       }
 
-      // Update Firestore (fullName, phone, photo)
       await _firebaseService.updateUserFields(uid, {
         'fullName': _nameCtrl.text.trim(),
         'phone': _phoneCtrl.text.trim(),
@@ -393,7 +666,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         if (newPhotoUrl != null) 'photoUrl': newPhotoUrl,
       });
 
-      // Also update Firebase Auth display name
       await AuthService.updateProfile(fullName: _nameCtrl.text.trim());
 
       if (mounted) {
@@ -534,8 +806,117 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  MY ADDRESSES SCREEN — Firestore backed with real-time stream
-// ══════════════════════════════════════════════════════════════════════════════
+class HelpSupportScreen extends StatelessWidget {
+  const HelpSupportScreen({super.key});
+
+  static const _faqs = [
+    {
+      'q': 'How do I book a service?',
+      'a': 'Go to Home, browse services, select one, choose a time slot, and confirm your booking.'
+    },
+    {
+      'q': 'How do I cancel a booking?',
+      'a': 'Go to Bookings tab, find your booking and tap "Cancel". Cancellations are free up to 2 hours before.'
+    },
+    {
+      'q': 'How do I add a payment method?',
+      'a': 'Go to Profile → Payment Methods → Add New Card and enter your card details.'
+    },
+    {
+      'q': 'How do I change my address?',
+      'a': 'Go to Profile → My Addresses to add, edit or delete addresses.'
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.bgColor,
+      appBar: _buildAppBar('Help & Support'),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryOrange,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: const [
+                Icon(Icons.support_agent, color: Colors.white, size: 36),
+                SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Chat with Us',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16)),
+                      SizedBox(height: 4),
+                      Text('We typically reply within minutes',
+                          style: TextStyle(color: Colors.white70, fontSize: 13)),
+                    ],
+                  ),
+                ),
+                Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text('FAQs',
+              style: TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.darkText)),
+          const SizedBox(height: 12),
+          ..._faqs.map(
+            (faq) => Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(
+                color: AppTheme.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                      color: AppTheme.cardShadow,
+                      blurRadius: 8,
+                      offset: const Offset(0, 2))
+                ],
+              ),
+              child: ExpansionTile(
+                title: Text(faq['q']!,
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.darkText)),
+                childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                iconColor: AppTheme.primaryOrange,
+                collapsedIconColor: AppTheme.greyText,
+                children: [
+                  Text(faq['a']!, style: const TextStyle(color: AppTheme.greyText, fontSize: 13))
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Email: support@sewamitra.com'))),
+            icon: const Icon(Icons.email_outlined, color: AppTheme.primaryOrange),
+            label: const Text('Email Support', style: TextStyle(color: AppTheme.primaryOrange)),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              side: const BorderSide(color: AppTheme.primaryOrange),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 
 class MyAddressesScreen extends StatefulWidget {
   const MyAddressesScreen({super.key});
@@ -567,7 +948,6 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Label picker
               Wrap(
                 spacing: 8,
                 children: labels.map((l) {
@@ -712,8 +1092,117 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  PAYMENT METHODS SCREEN — real saved cards from Firestore
-// ══════════════════════════════════════════════════════════════════════════════
+class HelpSupportScreen extends StatelessWidget {
+  const HelpSupportScreen({super.key});
+
+  static const _faqs = [
+    {
+      'q': 'How do I book a service?',
+      'a': 'Go to Home, browse services, select one, choose a time slot, and confirm your booking.'
+    },
+    {
+      'q': 'How do I cancel a booking?',
+      'a': 'Go to Bookings tab, find your booking and tap "Cancel". Cancellations are free up to 2 hours before.'
+    },
+    {
+      'q': 'How do I add a payment method?',
+      'a': 'Go to Profile → Payment Methods → Add New Card and enter your card details.'
+    },
+    {
+      'q': 'How do I change my address?',
+      'a': 'Go to Profile → My Addresses to add, edit or delete addresses.'
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.bgColor,
+      appBar: _buildAppBar('Help & Support'),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryOrange,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: const [
+                Icon(Icons.support_agent, color: Colors.white, size: 36),
+                SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Chat with Us',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16)),
+                      SizedBox(height: 4),
+                      Text('We typically reply within minutes',
+                          style: TextStyle(color: Colors.white70, fontSize: 13)),
+                    ],
+                  ),
+                ),
+                Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text('FAQs',
+              style: TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.darkText)),
+          const SizedBox(height: 12),
+          ..._faqs.map(
+            (faq) => Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(
+                color: AppTheme.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                      color: AppTheme.cardShadow,
+                      blurRadius: 8,
+                      offset: const Offset(0, 2))
+                ],
+              ),
+              child: ExpansionTile(
+                title: Text(faq['q']!,
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.darkText)),
+                childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                iconColor: AppTheme.primaryOrange,
+                collapsedIconColor: AppTheme.greyText,
+                children: [
+                  Text(faq['a']!, style: const TextStyle(color: AppTheme.greyText, fontSize: 13))
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Email: support@sewamitra.com'))),
+            icon: const Icon(Icons.email_outlined, color: AppTheme.primaryOrange),
+            label: const Text('Email Support', style: TextStyle(color: AppTheme.primaryOrange)),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              side: const BorderSide(color: AppTheme.primaryOrange),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 
 class PaymentMethodsScreen extends StatefulWidget {
   const PaymentMethodsScreen({super.key});
@@ -1056,3 +1545,4 @@ class HelpSupportScreen extends StatelessWidget {
     );
   }
 }
+
