@@ -172,11 +172,16 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
                         child: ElevatedButton(
                           onPressed: _selectedServiceIndex != null
                               ? () {
+                                  final selectedService = services[_selectedServiceIndex!];
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          const DateTimeSelectionScreen(),
+                                          DateTimeSelectionScreen(
+                                            serviceName: selectedService.title,
+                                            servicePrice: selectedService.price.toDouble(),
+                                            providerName: selectedService.title, // or some other logic
+                                          ),
                                     ),
                                   );
                                 }

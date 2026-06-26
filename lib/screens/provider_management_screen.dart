@@ -82,7 +82,7 @@ class ProviderManagementScreen extends StatelessWidget {
               jobs: 120,
               status: 'Active',
               statusColor: const Color(0xFF27AE60),
-              startingPrice: null,
+              startingPrice: 500,
             ),
             const SizedBox(height: 12),
             _buildProviderCard(
@@ -352,21 +352,6 @@ class ProviderManagementScreen extends StatelessWidget {
                     child: const Text('Suspend'),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _showApproveDialog(context, name);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF27AE60),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('Approve'),
-                  ),
-                ),
               ] else if (status == 'Pending') ...[
                 Expanded(
                   child: OutlinedButton(
@@ -412,22 +397,6 @@ class ProviderManagementScreen extends StatelessWidget {
                       ),
                     ),
                     child: const Text('Restore'),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      _showProviderDetails(context, name, category, rating);
-                    },
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: const Color(0xFFFF6B35)),
-                      foregroundColor: const Color(0xFFFF6B35),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('Details'),
                   ),
                 ),
               ],

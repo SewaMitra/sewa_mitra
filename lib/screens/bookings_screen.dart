@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/models.dart';
+import '../services/firebase_service.dart';
+import '../services/auth_service.dart';
 
 class BookingsScreen extends StatelessWidget {
   const BookingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final user = AuthService.currentUser;
+
     return Scaffold(
       backgroundColor: AppTheme.bgColor,
       appBar: AppBar(
@@ -21,20 +25,31 @@ class BookingsScreen extends StatelessWidget {
         backgroundColor: AppTheme.bgColor,
         elevation: 0,
       ),
-      body: ValueListenableBuilder<List<Booking>>(
-        valueListenable: BookingData.bookingsNotifier,
-        builder: (context, bookings, child) {
-          return bookings.isEmpty
-              ? _buildEmptyState()
-              : ListView.builder(
-            padding: const EdgeInsets.all(20),
-            itemCount: bookings.length,
-            itemBuilder: (context, index) {
-              return _buildBookingCard(bookings[index]);
-            },
-          );
-        },
-      ),
+      body: user == null
+          ? const Center(child: Text('Please log in to view bookings'))
+          : StreamBuilder<List<Booking>>(
+              stream: FirebaseService().userBookingsStream(user.uid),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+
+                final bookings = snapshot.data ?? [];
+
+                return bookings.isEmpty
+                    ? _buildEmptyState()
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(20),
+                        itemCount: bookings.length,
+                        itemBuilder: (context, index) {
+                          return _buildBookingCard(bookings[index]);
+                        },
+                      );
+              },
+            ),
     );
   }
 

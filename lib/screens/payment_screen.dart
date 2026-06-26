@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'payment_success_screen.dart';
+import 'booking_confirmation.dart';
 import 'card_payment_screen.dart';
 import '../models/models.dart';
+import '../services/firebase_service.dart';
+import '../services/auth_service.dart';
 
 class PaymentScreen extends StatefulWidget {
   final double amount;
@@ -24,8 +26,9 @@ class PaymentScreen extends StatefulWidget {
 
 class _PaymentScreenState extends State<PaymentScreen> {
   String? selectedMethod;
+  bool _isProcessing = false;
 
-  void processPayment() {
+  Future<void> processPayment() async {
     if (selectedMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a payment method')),
@@ -49,41 +52,58 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return;
     }
 
-    if (selectedMethod == 'Wallet Balance') {
-      if (!WalletData.subtractMoney(widget.amount)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Insufficient Wallet Balance')),
-        );
-        return;
+    setState(() => _isProcessing = true);
+
+    try {
+      final user = AuthService.currentUser;
+      if (user == null) {
+        throw Exception('User not logged in');
       }
+
+      if (selectedMethod == 'Wallet Balance') {
+        if (!WalletData.subtractMoney(widget.amount)) {
+          throw Exception('Insufficient Wallet Balance');
+        }
+      }
+
+      // Create booking object
+      final newBooking = Booking(
+        id: widget.bookingId,
+        userId: user.uid,
+        serviceName: widget.serviceName,
+        providerName: 'Professional Provider',
+        date: widget.date,
+        time: widget.time,
+        address: 'Kathmandu, Nepal', // Should ideally come from user profile/selection
+        amount: widget.amount,
+        createdAt: DateTime.now(),
+      );
+
+      // Save to Firestore
+      await FirebaseService().createBooking(newBooking);
+
+      // Also add to local notifier for legacy support if needed
+      BookingData.addBooking(newBooking);
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BookingConfirmationScreen(
+              booking: newBooking,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
     }
-
-    // Add booking data before navigating
-    final newBooking = Booking(
-      id: widget.bookingId,
-      serviceName: widget.serviceName,
-      providerName: 'Professional Provider',
-      date: widget.date,
-      time: widget.time,
-      address: 'Kathmandu, Nepal',
-      amount: widget.amount,
-    );
-    BookingData.addBooking(newBooking);
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PaymentSuccessScreen(
-          amount: widget.amount,
-          bookingId: widget.bookingId,
-          serviceName: widget.serviceName,
-          transactionId: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-          method: selectedMethod!,
-          bookingDate: widget.date,
-          bookingTime: widget.time,
-        ),
-      ),
-    );
   }
 
   @override

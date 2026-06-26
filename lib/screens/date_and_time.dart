@@ -6,7 +6,16 @@ import 'book_service.dart';
 import 'payment_screen.dart';
 
 class DateTimeSelectionScreen extends StatefulWidget {
-  const DateTimeSelectionScreen({super.key});
+  final String serviceName;
+  final double servicePrice;
+  final String providerName;
+
+  const DateTimeSelectionScreen({
+    super.key,
+    required this.serviceName,
+    required this.servicePrice,
+    required this.providerName,
+  });
 
   @override
   State<DateTimeSelectionScreen> createState() =>
@@ -245,9 +254,9 @@ class _DateTimeSelectionScreenState extends State<DateTimeSelectionScreen> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => PaymentScreen(
-                                        amount: 500,
+                                        amount: widget.servicePrice,
                                         bookingId: 'BK-${DateTime.now().millisecondsSinceEpoch}',
-                                        serviceName: 'Electrical Repair',
+                                        serviceName: widget.serviceName,
                                         date: DateFormat('dd MMM yyyy').format(_selectedDate!),
                                         time: _selectedTime!,
                                       ),

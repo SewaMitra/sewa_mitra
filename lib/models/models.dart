@@ -34,6 +34,7 @@ class ServiceProvider {
 
 class Booking {
   final String id;
+  final String userId;
   final String serviceName;
   final String providerName;
   final String date;
@@ -41,9 +42,11 @@ class Booking {
   final String address;
   final double amount;
   final String status;
+  final DateTime? createdAt;
 
   Booking({
     required this.id,
+    required this.userId,
     required this.serviceName,
     required this.providerName,
     required this.date,
@@ -51,7 +54,40 @@ class Booking {
     required this.address,
     required this.amount,
     this.status = 'Confirmed',
+    this.createdAt,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'userId': userId,
+      'serviceName': serviceName,
+      'providerName': providerName,
+      'date': date,
+      'time': time,
+      'address': address,
+      'amount': amount,
+      'status': status,
+      'createdAt': createdAt ?? DateTime.now(),
+    };
+  }
+
+  factory Booking.fromMap(Map<String, dynamic> map, String id) {
+    return Booking(
+      id: id,
+      userId: map['userId'] ?? '',
+      serviceName: map['serviceName'] ?? '',
+      providerName: map['providerName'] ?? '',
+      date: map['date'] ?? '',
+      time: map['time'] ?? '',
+      address: map['address'] ?? '',
+      amount: (map['amount'] ?? 0).toDouble(),
+      status: map['status'] ?? 'Confirmed',
+      createdAt: map['createdAt'] != null 
+          ? (map['createdAt'] as dynamic).toDate() 
+          : null,
+    );
+  }
 }
 
 class BookingData {

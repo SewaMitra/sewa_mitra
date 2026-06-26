@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'notifications.dart';
-import 'book_service.dart';
+import '../models/models.dart';
+import 'home_screen.dart';
 
 class BookingConfirmationScreen extends StatelessWidget {
-  const BookingConfirmationScreen({super.key});
+  final Booking booking;
+
+  const BookingConfirmationScreen({super.key, required this.booking});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +16,10 @@ class BookingConfirmationScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1C1C1E), size: 20),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            (route) => false,
+          ),
         ),
         title: const Text(
           'Booking Confirmation',
@@ -56,16 +61,16 @@ class BookingConfirmationScreen extends StatelessWidget {
                       const SizedBox(height: 24),
 
                       // Success Icon and Title
-                      const Center(
+                      Center(
                         child: Column(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.check_circle,
                               color: Color(0xFFFF8A00),
                               size: 80,
                             ),
-                            SizedBox(height: 16),
-                            Text(
+                            const SizedBox(height: 16),
+                            const Text(
                               'Booking Confirmed',
                               style: TextStyle(
                                 fontSize: 24,
@@ -73,10 +78,10 @@ class BookingConfirmationScreen extends StatelessWidget {
                                 color: Color(0xFF1C1C1E),
                               ),
                             ),
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             Text(
-                              'Booking Reference: #BK-20260511',
-                              style: TextStyle(
+                              'Booking Reference: #${booking.id.substring(0, 8).toUpperCase()}',
+                              style: const TextStyle(
                                 fontSize: 14,
                                 color: Color(0xFF8E8E93),
                               ),
@@ -97,17 +102,17 @@ class BookingConfirmationScreen extends StatelessWidget {
                         ),
                         child: Column(
                           children: [
-                            _buildDetailRow('Service', 'Electrical Repair'),
+                            _buildDetailRow('Service', booking.serviceName),
                             _buildDivider(),
-                            _buildDetailRow('Provider', 'Electric Pro'),
+                            _buildDetailRow('Provider', booking.providerName),
                             _buildDivider(),
-                            _buildDetailRow('Date', 'Mon, 11 May 2026'),
+                            _buildDetailRow('Date', booking.date),
                             _buildDivider(),
-                            _buildDetailRow('Time', '11:00 AM'),
+                            _buildDetailRow('Time', booking.time),
                             _buildDivider(),
-                            _buildDetailRow('Address', 'Thamel, Kathmandu'),
+                            _buildDetailRow('Address', booking.address),
                             _buildDivider(),
-                            _buildDetailRow('Amount', 'Rs. 500',
+                            _buildDetailRow('Amount', 'Rs. ${booking.amount}',
                                 isBold: true),
                           ],
                         ),

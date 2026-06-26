@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'payment_success_screen.dart';
+import 'booking_confirmation.dart';
 import '../models/models.dart';
+import '../services/firebase_service.dart';
+import '../services/auth_service.dart';
 
 class CardPaymentScreen extends StatefulWidget {
   final double amount;
@@ -27,6 +29,7 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
   final _cardHolderController = TextEditingController();
   final _expiryController = TextEditingController();
   final _cvvController = TextEditingController();
+  bool _isProcessing = false;
 
   @override
   void dispose() {
@@ -37,34 +40,51 @@ class _CardPaymentScreenState extends State<CardPaymentScreen> {
     super.dispose();
   }
 
-  void processPayment() {
+  Future<void> processPayment() async {
     if (_formKey.currentState!.validate()) {
-      // Add booking data before navigating
-      final newBooking = Booking(
-        id: widget.bookingId,
-        serviceName: widget.serviceName,
-        providerName: 'Professional Provider',
-        date: widget.date,
-        time: widget.time,
-        address: 'Kathmandu, Nepal',
-        amount: widget.amount,
-      );
-      BookingData.addBooking(newBooking);
+      setState(() => _isProcessing = true);
+      try {
+        final user = AuthService.currentUser;
+        if (user == null) {
+          throw Exception('User not logged in');
+        }
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PaymentSuccessScreen(
-            amount: widget.amount,
-            bookingId: widget.bookingId,
-            serviceName: widget.serviceName,
-            transactionId: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-            method: 'Credit Card',
-            bookingDate: widget.date,
-            bookingTime: widget.time,
-          ),
-        ),
-      );
+        // Add booking data before navigating
+        final newBooking = Booking(
+          id: widget.bookingId,
+          userId: user.uid,
+          serviceName: widget.serviceName,
+          providerName: 'Professional Provider',
+          date: widget.date,
+          time: widget.time,
+          address: 'Kathmandu, Nepal',
+          amount: widget.amount,
+          createdAt: DateTime.now(),
+        );
+
+        // Save to Firestore
+        await FirebaseService().createBooking(newBooking);
+        BookingData.addBooking(newBooking);
+
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => BookingConfirmationScreen(
+                booking: newBooking,
+              ),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.toString())),
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _isProcessing = false);
+      }
     }
   }
 
