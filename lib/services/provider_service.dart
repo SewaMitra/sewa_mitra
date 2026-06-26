@@ -22,14 +22,18 @@ class ProviderService {
         return {'success': false, 'error': 'User not authenticated'};
       }
 
-      // Check if already applied
+      // Check if already applied — filter client-side to avoid composite index
       final existingApps = await _firestore
           .collection('provider_applications')
           .where('userId', isEqualTo: user.uid)
-          .where('status', whereIn: ['pending', 'approved'])
           .get();
 
-      if (existingApps.docs.isNotEmpty) {
+      final alreadyApplied = existingApps.docs.any((doc) {
+        final status = doc.data()['status'];
+        return status == 'pending' || status == 'approved';
+      });
+
+      if (alreadyApplied) {
         return {'success': false, 'error': 'You already have a pending application'};
       }
 
@@ -72,7 +76,7 @@ class ProviderService {
         'submittedAt': FieldValue.serverTimestamp(),
       });
 
-      // Update user role
+      // Update user providerApplicationStatus
       await _firestore.collection('users').doc(user.uid).update({
         'providerApplicationStatus': 'pending',
         'updatedAt': FieldValue.serverTimestamp(),
@@ -95,6 +99,7 @@ class ProviderService {
       final user = _auth.currentUser;
       if (user == null) return null;
 
+      // orderBy('submittedAt') alone — no composite index needed
       final snapshot = await _firestore
           .collection('provider_applications')
           .where('userId', isEqualTo: user.uid)
@@ -162,49 +167,50 @@ class ProviderService {
     }
   }
 
-  // Get all providers
+  // Get all providers — client-side isActive filter to avoid composite index
   Stream<List<ProviderModel>> getAllProviders({bool activeOnly = true}) {
-    var query = _firestore
+    return _firestore
         .collection('providers')
-        .orderBy('rating', descending: true);
-
-    if (activeOnly) {
-      query = query.where('isActive', isEqualTo: true);
-    }
-
-    return query.snapshots().map((snapshot) => snapshot.docs
-        .map((doc) => ProviderModel.fromFirestore(doc))
-        .toList());
+        .orderBy('rating', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      var providers = snapshot.docs
+          .map((doc) => ProviderModel.fromFirestore(doc))
+          .toList();
+      if (activeOnly) {
+        providers = providers.where((p) => p.isActive).toList();
+      }
+      return providers;
+    });
   }
 
-  // Get providers by category
+  // Get providers by category — client-side isActive filter to avoid composite index
   Stream<List<ProviderModel>> getProvidersByCategory(String category) {
     return _firestore
         .collection('providers')
         .where('category', isEqualTo: category)
-        .where('isActive', isEqualTo: true)
         .orderBy('rating', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
-        .map((doc) => ProviderModel.fromFirestore(doc))
-        .toList());
+            .map((doc) => ProviderModel.fromFirestore(doc))
+            .where((p) => p.isActive)
+            .toList());
   }
 
   // Search providers
   Stream<List<ProviderModel>> searchProviders(String query) {
     // Note: For production, use Algolia or ElasticSearch
-    // This is a client-side filter for demo
     return _firestore
         .collection('providers')
-        .where('isActive', isEqualTo: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
-        .map((doc) => ProviderModel.fromFirestore(doc))
-        .where((provider) =>
-    provider.businessName.toLowerCase().contains(query.toLowerCase()) ||
-        provider.description.toLowerCase().contains(query.toLowerCase()) ||
-        provider.category.toLowerCase().contains(query.toLowerCase()))
-        .toList());
+            .map((doc) => ProviderModel.fromFirestore(doc))
+            .where((provider) =>
+                provider.isActive &&
+                (provider.businessName.toLowerCase().contains(query.toLowerCase()) ||
+                    provider.description.toLowerCase().contains(query.toLowerCase()) ||
+                    provider.category.toLowerCase().contains(query.toLowerCase())))
+            .toList());
   }
 
   // Add earning to provider
@@ -267,7 +273,6 @@ class ProviderService {
 
       final appData = appDoc.data()!;
       final userId = appData['userId'];
-      final fullName = appData['fullName'] ?? '';
       final businessName = appData['businessName'] ?? '';
       final description = appData['description'] ?? '';
       final services = List<String>.from(appData['services'] ?? []);
@@ -390,19 +395,21 @@ class ProviderService {
     }
   }
 
-  // Get all applications (for admin)
+  // Get all applications (for admin) — client-side status filter to avoid composite index
   Stream<List<ProviderApplicationModel>> getAllApplications({String? status}) {
-    var query = _firestore
+    return _firestore
         .collection('provider_applications')
-        .orderBy('submittedAt', descending: true);
-
-    if (status != null) {
-      query = query.where('status', isEqualTo: status);
-    }
-
-    return query.snapshots().map((snapshot) => snapshot.docs
-        .map((doc) => ProviderApplicationModel.fromFirestore(doc))
-        .toList());
+        .orderBy('submittedAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      var apps = snapshot.docs
+          .map((doc) => ProviderApplicationModel.fromFirestore(doc))
+          .toList();
+      if (status != null) {
+        apps = apps.where((a) => a.status == status).toList();
+      }
+      return apps;
+    });
   }
 
   // Get provider earnings
@@ -413,8 +420,8 @@ class ProviderService {
         .orderBy('earnedAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
-        .map((doc) => EarningModel.fromFirestore(doc))
-        .toList());
+            .map((doc) => EarningModel.fromFirestore(doc))
+            .toList());
   }
 
   // Get earning summary for provider
@@ -432,7 +439,7 @@ class ProviderService {
 
       for (var doc in snapshot.docs) {
         final data = doc.data();
-        final amount = (data['amount'] ?? 0).toDouble();
+        final amount = (data['netAmount'] ?? data['amount'] ?? 0).toDouble();
         final status = data['status'] ?? 'pending';
 
         totalEarnings += amount;
@@ -466,7 +473,6 @@ class ProviderService {
   // Withdraw earnings
   Future<bool> withdrawEarnings(String providerId, double amount) async {
     try {
-      // Check if provider has enough available balance
       final summary = await getEarningSummary(providerId);
       if ((summary['availableBalance'] ?? 0) < amount) {
         return false;
@@ -474,7 +480,6 @@ class ProviderService {
 
       final batch = _firestore.batch();
 
-      // Mark earnings as withdrawn
       final snapshot = await _firestore
           .collection('earnings')
           .where('providerId', isEqualTo: providerId)
@@ -486,7 +491,7 @@ class ProviderService {
         if (totalWithdrawn >= amount) break;
 
         final data = doc.data();
-        final earningAmount = (data['amount'] ?? 0).toDouble();
+        final earningAmount = (data['netAmount'] ?? data['amount'] ?? 0).toDouble();
         final remainingToWithdraw = amount - totalWithdrawn;
 
         if (earningAmount <= remainingToWithdraw) {
