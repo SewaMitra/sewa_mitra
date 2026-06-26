@@ -1,4 +1,4 @@
- // lib/services/firebase_service.dart
+// lib/services/firebase_service.dart
 //
 // Handles everything Firestore for the profile (no Firebase Storage — free plan):
 //   • fetch / save user profile
@@ -9,8 +9,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/user_model.dart';
-import '../models/models.dart';
+import '../shared/models/user_model.dart';
 
 class FirebaseService {
   // ── Singletons ─────────────────────────────────────────────────────────────
@@ -123,41 +122,6 @@ class FirebaseService {
       await _addressCol(uid).doc(addressId).delete();
     } catch (e) {
       throw Exception('Failed to delete address: $e');
-    }
-  }
-
-  // ══════════════════════════════════════════════════════════════════════════
-  //  BOOKINGS
-  // ══════════════════════════════════════════════════════════════════════════
-
-  CollectionReference _bookingCol() => _db.collection('bookings');
-
-  /// Create a new booking
-  Future<void> createBooking(Booking booking) async {
-    try {
-      await _bookingCol().doc(booking.id).set(booking.toMap());
-    } catch (e) {
-      throw Exception('Failed to create booking: $e');
-    }
-  }
-
-  /// Stream user's bookings
-  Stream<List<Booking>> userBookingsStream(String uid) {
-    return _bookingCol()
-        .where('userId', isEqualTo: uid)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => Booking.fromMap(d.data() as Map<String, dynamic>, d.id))
-            .toList());
-  }
-
-  /// Update booking status
-  Future<void> updateBookingStatus(String bookingId, String status) async {
-    try {
-      await _bookingCol().doc(bookingId).update({'status': status});
-    } catch (e) {
-      throw Exception('Failed to update booking status: $e');
     }
   }
 

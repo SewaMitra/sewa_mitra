@@ -1,13 +1,43 @@
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static final FirebaseFirestore _db = FirebaseFirestore.instance;
+  static final FirebaseStorage _storage = FirebaseStorage.instance;
   static final GoogleSignIn _googleSignIn = GoogleSignIn(
     serverClientId: '1090348965383-ufo5ftb59l4lhvp5flr7mn9tpumv5a6g.apps.googleusercontent.com',
   );
+
+  // ──────────────────────────────────────────
+  // ROLE CACHE — avoids repeated Firestore calls on every route change
+  // ──────────────────────────────────────────
+  static String? _cachedRole;
+  static String? _cachedUid;
+
+  static Future<String> getCachedRole() async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return 'customer';
+    // Return cache if same user
+    if (_cachedUid == uid && _cachedRole != null) return _cachedRole!;
+    // Otherwise fetch and cache
+    try {
+      final doc = await _db.collection('users').doc(uid).get();
+      _cachedRole = doc.data()?['role'] ?? 'customer';
+      _cachedUid = uid;
+      return _cachedRole!;
+    } catch (_) {
+      return 'customer';
+    }
+  }
+
+  static void clearRoleCache() {
+    _cachedRole = null;
+    _cachedUid = null;
+  }
 
   // ──────────────────────────────────────────
   // STREAMS & GETTERS
@@ -74,6 +104,7 @@ class AuthService {
           'emailVerified': true,
           'photoUrl': user.photoURL ?? '',
           'provider': 'google',
+          'role': 'customer', // ← Always assign role on first Google sign-in
           'isOnline': true,
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
@@ -123,6 +154,7 @@ class AuthService {
         'emailVerified': false,
         'photoUrl': '',
         'provider': 'email',
+        'role': 'customer', // ← Always assign role on registration
         'isOnline': true,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
@@ -203,6 +235,7 @@ class AuthService {
   // ──────────────────────────────────────────
   static Future<AuthResult> updateProfile({
     String? fullName,
+    String? photoUrl,
     Map<String, dynamic>? extraFields,
   }) async {
     try {
@@ -212,6 +245,7 @@ class AuthService {
       final updates = <String, dynamic>{
         'updatedAt': FieldValue.serverTimestamp(),
         if (fullName != null) 'fullName': fullName.trim(),
+        if (photoUrl != null) 'photoUrl': photoUrl,
         ...?extraFields,
       };
 
@@ -219,10 +253,30 @@ class AuthService {
       if (fullName != null) {
         await _auth.currentUser?.updateDisplayName(fullName.trim());
       }
+      if (photoUrl != null) {
+        await _auth.currentUser?.updatePhotoURL(photoUrl);
+      }
 
       return AuthResult.success();
     } catch (_) {
       return AuthResult.error('Could not update profile. Try again.');
+    }
+  }
+
+  // ──────────────────────────────────────────
+  // UPLOAD PROFILE IMAGE
+  // ──────────────────────────────────────────
+  static Future<String?> uploadProfileImage(File imageFile) async {
+    try {
+      final uid = _auth.currentUser?.uid;
+      if (uid == null) return null;
+
+      final ref = _storage.ref().child('user_profiles').child('$uid.jpg');
+      await ref.putFile(imageFile);
+      return await ref.getDownloadURL();
+    } catch (e) {
+      print('Error uploading image: $e');
+      return null;
     }
   }
 
@@ -244,7 +298,8 @@ class AuthService {
     } catch (e) {
       print('Logout status update failed: $e');
     } finally {
-      // Always sign out locally
+      // Always sign out locally and clear cache
+      clearRoleCache();
       await _googleSignIn.signOut();
       await _auth.signOut();
     }
