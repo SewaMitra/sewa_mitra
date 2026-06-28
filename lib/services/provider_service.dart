@@ -267,7 +267,6 @@ class ProviderService {
 
       final appData = appDoc.data()!;
       final userId = appData['userId'];
-      final fullName = appData['fullName'] ?? '';
       final businessName = appData['businessName'] ?? '';
       final description = appData['description'] ?? '';
       final services = List<String>.from(appData['services'] ?? []);

@@ -724,7 +724,6 @@ class PaymentMethodsScreen extends StatefulWidget {
 
 class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   final _paymentService = PaymentService();
-  bool _isDeleting = false;
 
   void _addCardDialog() {
     final cardNumberCtrl = TextEditingController();
@@ -908,9 +907,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                         if (value == 'default') {
                           await _paymentService.setDefaultCard(card.id);
                         } else if (value == 'delete') {
-                          setState(() => _isDeleting = true);
                           await _paymentService.deleteCard(card.id);
-                          setState(() => _isDeleting = false);
                         }
                       },
                       itemBuilder: (_) => [
