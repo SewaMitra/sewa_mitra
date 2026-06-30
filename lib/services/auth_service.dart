@@ -53,6 +53,7 @@ class AuthService {
   static void clearRoleCache() {
     _cachedRole = null;
     _cachedUid = null;
+    _activeMode = null;
   }
 
   // ──────────────────────────────────────────

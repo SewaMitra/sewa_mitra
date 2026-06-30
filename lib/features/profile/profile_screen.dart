@@ -172,9 +172,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               value: userVM.activeMode == 'provider',
                               activeColor: AppTheme.primaryOrange,
                               onChanged: (v) async {
+                                final targetMode = userVM.activeMode == 'provider' ? 'customer' : 'provider';
                                 await userVM.switchMode();
                                 if (mounted) {
-                                  context.go(userVM.activeMode == 'provider' ? '/provider/dashboard' : '/home');
+                                  context.go(targetMode == 'provider' ? '/provider/dashboard' : '/home');
                                 }
                               },
                             ),

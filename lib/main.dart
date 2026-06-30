@@ -94,7 +94,7 @@ ThemeData _buildLightTheme() {
       thumbColor: WidgetStateProperty.resolveWith(
           (s) => s.contains(WidgetState.selected) ? const Color(0xFFF97316) : null),
       trackColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? const Color(0xFFF97316).withOpacity(0.4) : null),
+          (s) => s.contains(WidgetState.selected) ? const Color(0xFFF97316).withValues(alpha: 0.4) : null),
     ),
   );
 }
@@ -127,7 +127,7 @@ ThemeData _buildDarkTheme() {
       thumbColor: WidgetStateProperty.resolveWith(
           (s) => s.contains(WidgetState.selected) ? const Color(0xFFF97316) : null),
       trackColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? const Color(0xFFF97316).withOpacity(0.4) : null),
+          (s) => s.contains(WidgetState.selected) ? const Color(0xFFF97316).withValues(alpha: 0.4) : null),
     ),
   );
 }

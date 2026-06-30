@@ -99,16 +99,23 @@ class ProviderService {
       final user = _auth.currentUser;
       if (user == null) return null;
 
-      // orderBy('submittedAt') alone — no composite index needed
+      // Fetch all by userId only (no orderBy to avoid composite index requirement)
       final snapshot = await _firestore
           .collection('provider_applications')
           .where('userId', isEqualTo: user.uid)
-          .orderBy('submittedAt', descending: true)
-          .limit(1)
           .get();
 
       if (snapshot.docs.isEmpty) return null;
-      return ProviderApplicationModel.fromFirestore(snapshot.docs.first);
+
+      // Sort client-side by submittedAt descending and take most recent
+      final sorted = snapshot.docs.toList()
+        ..sort((a, b) {
+          final aTime = (a.data()['submittedAt'] as dynamic)?.seconds ?? 0;
+          final bTime = (b.data()['submittedAt'] as dynamic)?.seconds ?? 0;
+          return bTime.compareTo(aTime);
+        });
+
+      return ProviderApplicationModel.fromFirestore(sorted.first);
     } catch (e) {
       print('Error getting application: $e');
       return null;

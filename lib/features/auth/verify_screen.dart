@@ -22,8 +22,9 @@ class _VerifyScreenState extends State<VerifyScreen> {
       final verified = await AuthService.checkEmailVerified();
       if (verified && mounted) {
         _checkTimer?.cancel();
-        // GoRouter redirect logic in core/router.dart or initialLocation will handle it
-        context.go('/home');
+        // Go to splash so the router's role-based redirect fires correctly
+        // (admins → /admin/dashboard, others → /home)
+        context.go('/splash');
       }
     });
   }
