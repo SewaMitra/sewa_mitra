@@ -27,8 +27,11 @@ import '../features/admin/user_management_screen.dart';
 import '../features/admin/admin_dashboard_screen.dart';
 import '../features/provider/provider_management_screen.dart';
 import '../features/provider/join_provider_screen.dart';
+import '../features/provider/provider_dashboard_screen.dart';
+import '../features/provider/earning_screen.dart';
 import '../main_container.dart';
 import '../services/auth_service.dart';
+import '../features/services/services_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -72,6 +75,22 @@ class AppRouter {
         if (nonAdminRoutes.any((p) => location.startsWith(p))) {
           return '/admin/dashboard';
         }
+      }
+
+      // For non-admin users, enforce activeMode routing
+      if (role != 'admin') {
+        final mode = await AuthService.getActiveMode();
+
+        final isProviderRoute = location.startsWith('/provider/dashboard') ||
+            location.startsWith('/provider/earnings');
+        final isCustomerOnlyRoute = location.startsWith('/home') ||
+            location.startsWith('/wallet');
+
+        // Customer stuck on a provider screen → send home
+        if (mode == 'customer' && isProviderRoute) return '/home';
+
+        // Provider stuck on a customer-only screen → send to dashboard
+        if (mode == 'provider' && isCustomerOnlyRoute) return '/provider/dashboard';
       }
 
       return null;
@@ -127,7 +146,17 @@ class AppRouter {
             name: 'profile',
             builder: (context, state) => const ProfileScreen(),
           ),
-
+          // Provider dashboard within Shell
+          GoRoute(
+            path: '/provider/dashboard',
+            name: 'provider-dashboard',
+            builder: (context, state) => const ProviderDashboardScreen(),
+          ),
+          GoRoute(
+            path: '/provider/earnings',
+            name: 'provider-earnings',
+            builder: (context, state) => const EarningScreen(),
+          ),
           // ── Admin only routes ─────────────────────────────
           GoRoute(
             path: '/admin/dashboard',
@@ -241,12 +270,19 @@ class AppRouter {
         name: 'provider-join',
         builder: (context, state) => const JoinProviderScreen(),
       ),
+      GoRoute(
+        path: '/services',
+        name: 'services',
+        builder: (context, state) => const ServicesScreen(),
+      ),
     ],
   );
 
   static Future<String> _getHomeForUser(String uid) async {
     final role = await AuthService.getCachedRole();
-    return role == 'admin' ? '/admin/dashboard' : '/home';
+    if (role == 'admin') return '/admin/dashboard';
+    final mode = await AuthService.getActiveMode();
+    return mode == 'provider' ? '/provider/dashboard' : '/home';
   }
 }
 

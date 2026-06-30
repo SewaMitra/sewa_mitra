@@ -5,6 +5,7 @@ import 'core/router.dart';
 import 'viewmodels/wallet_viewmodel.dart';
 import 'viewmodels/provider_viewmodel.dart';
 import 'viewmodels/theme_viewmodel.dart';
+import 'viewmodels/user_viewmodel.dart';
 
 class SewaMitraApp extends StatelessWidget {
   const SewaMitraApp({super.key});
@@ -16,6 +17,7 @@ class SewaMitraApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => WalletViewModel()),
         ChangeNotifierProvider(create: (_) => ProviderViewModel()),
         ChangeNotifierProvider(create: (_) => ThemeViewModel()),
+        ChangeNotifierProvider(create: (_) => UserViewModel()..init()),
       ],
       child: const _AppRoot(),
     );
@@ -82,7 +84,7 @@ ThemeData _buildLightTheme() {
       thumbColor: WidgetStateProperty.resolveWith(
           (s) => s.contains(WidgetState.selected) ? const Color(0xFFF97316) : null),
       trackColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? const Color(0xFFF97316).withOpacity(0.4) : null),
+          (s) => s.contains(WidgetState.selected) ? const Color(0xFFF97316).withValues(alpha: 0.4) : null),
     ),
   );
 }
@@ -115,7 +117,7 @@ ThemeData _buildDarkTheme() {
       thumbColor: WidgetStateProperty.resolveWith(
           (s) => s.contains(WidgetState.selected) ? const Color(0xFFF97316) : null),
       trackColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? const Color(0xFFF97316).withOpacity(0.4) : null),
+          (s) => s.contains(WidgetState.selected) ? const Color(0xFFF97316).withValues(alpha: 0.4) : null),
     ),
   );
 }

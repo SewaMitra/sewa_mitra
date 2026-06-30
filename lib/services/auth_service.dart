@@ -17,6 +17,22 @@ class AuthService {
   // ──────────────────────────────────────────
   static String? _cachedRole;
   static String? _cachedUid;
+  static String? _activeMode;
+
+  static Future<String> getActiveMode() async {
+    if (_activeMode != null) return _activeMode!;
+    final profile = await getUserProfile();
+    _activeMode = profile?['activeMode'] ?? 'customer';
+    return _activeMode!;
+  }
+
+  static Future<void> setActiveMode(String mode) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid != null) {
+      await _db.collection('users').doc(uid).update({'activeMode': mode});
+      _activeMode = mode;
+    }
+  }
 
   static Future<String> getCachedRole() async {
     final uid = _auth.currentUser?.uid;
@@ -37,6 +53,7 @@ class AuthService {
   static void clearRoleCache() {
     _cachedRole = null;
     _cachedUid = null;
+    _activeMode = null;
   }
 
   // ──────────────────────────────────────────

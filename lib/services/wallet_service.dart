@@ -30,7 +30,7 @@ class WalletService {
     final wallet = Wallet(
       userId: userId,
       balance: 0.0,
-      currency: 'USD',
+      currency: 'NPR',
       lastUpdated: DateTime.now(),
     );
 

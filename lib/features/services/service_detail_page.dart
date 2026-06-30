@@ -1,327 +1,610 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/theme.dart';
 
-class ReviewModel {
-  final String name;
-  final String comment;
-  final double rating;
-
-  const ReviewModel({
-    required this.name,
-    required this.comment,
-    required this.rating,
-  });
-}
-
-class ServiceDetailPage extends StatelessWidget {
+class ServiceDetailPage extends StatefulWidget {
   const ServiceDetailPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    const reviews = [
-      ReviewModel(
-        name: 'Sita M.',
-        comment: 'Fixed our panel issue in 2 hours. Very professional and clean',
-        rating: 0,
-      ),
-      ReviewModel(
-        name: 'Rajan K.',
-        comment: 'Good work, arrived on time. Price matched the quote exactly',
-        rating: 0,
-      ),
-    ];
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A2E),
-        elevation: 0,
-        leading: const Padding(
-          padding: EdgeInsets.only(left: 16.0),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Niraj',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ),
-        leadingWidth: 100,
-      ),
-      body: Column(
-        children: [
-          Container(
-            color: const Color(0xFF1A1A2E),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => context.pop(),
-                  child: const Icon(
-                    Icons.chevron_left,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Service detail',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _ProviderCard(),
-                  const SizedBox(height: 16),
-                  _PricingCard(),
-                  const SizedBox(height: 16),
-                  _TrustBadge(),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Recent review',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF333333),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  ...reviews.map((r) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _ReviewCard(review: r),
-                      )),
-                  const SizedBox(height: 80),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: _BookingButton(),
-    );
-  }
+  State<ServiceDetailPage> createState() => _ServiceDetailPageState();
 }
 
-class _ProviderCard extends StatelessWidget {
+class _ServiceDetailPageState extends State<ServiceDetailPage> {
+  final _db = FirebaseFirestore.instance;
+
+  // providerId comes from the route: /service/:serviceId
+  String get _providerId =>
+      GoRouterState.of(context).pathParameters['serviceId'] ?? '';
+
+  // Which service the customer selected (to pass to booking)
+  String? _selectedServiceId;
+  String? _selectedServiceName;
+  double? _selectedServicePrice;
+
+  // ── Cached future/streams — created ONCE in didChangeDependencies,
+  // not on every build(). Without this, every setState() (e.g. tapping
+  // a service card to select it) recreates the Future/Stream, which
+  // resets FutureBuilder/StreamBuilder back to a loading state and
+  // wipes the screen — the "flash then disappear" bug. ───────────────
+  Future<Map<String, dynamic>?>? _providerFuture;
+  Stream<List<Map<String, dynamic>>>? _servicesStream;
+  Stream<List<Map<String, dynamic>>>? _reviewsStream;
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      _initialized = true;
+      _providerFuture = _fetchProvider();
+      _servicesStream = _buildServicesStream();
+      _reviewsStream = _buildReviewsStream();
+    }
+  }
+
+  // ── Data fetchers ─────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>?> _fetchProvider() async {
+    final doc =
+        await _db.collection('providers').doc(_providerId).get();
+    return doc.exists ? {'id': doc.id, ...doc.data()!} : null;
+  }
+
+  Stream<List<Map<String, dynamic>>> _buildServicesStream() {
+    return _db
+        .collection('providers')
+        .doc(_providerId)
+        .collection('services')
+        .where('isAvailable', isEqualTo: true)
+        .orderBy('createdAt')
+        .snapshots()
+        .map((s) =>
+            s.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+  }
+
+  Stream<List<Map<String, dynamic>>> _buildReviewsStream() {
+    return _db
+        .collection('providers')
+        .doc(_providerId)
+        .collection('reviews')
+        .orderBy('createdAt', descending: true)
+        .limit(5)
+        .snapshots()
+        .map((s) =>
+            s.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF3E0),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE07B00),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Center(
-              child: Text(
-                'EP',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Electric Pro Services',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1A1A2E),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(Icons.star, color: Color(0xFFFFB300), size: 16),
-                  const SizedBox(width: 4),
-                  Text(
-                    '4.8 (120 review)',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[700],
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _providerFuture,
+      builder: (context, provSnap) {
+        if (provSnap.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+                child: CircularProgressIndicator(
+                    color: AppTheme.primaryOrange)),
+          );
+        }
+
+        final provider = provSnap.data;
+
+        if (provider == null) {
+          return Scaffold(
+            appBar: AppBar(),
+            body: const Center(child: Text('Provider not found.')),
+          );
+        }
+
+        final businessName =
+            provider['businessName'] as String? ?? 'Provider';
+        final category = provider['category'] as String? ?? '';
+        final rating =
+            (provider['rating'] as num?)?.toDouble() ?? 0.0;
+        final totalReviews = provider['totalReviews'] as int? ?? 0;
+        final isVerified = provider['isVerified'] as bool? ?? false;
+        final description =
+            provider['description'] as String? ?? '';
+        final initials =
+            businessName.isNotEmpty ? businessName[0].toUpperCase() : 'P';
+
+        return Scaffold(
+          backgroundColor: AppTheme.bgColor,
+          body: CustomScrollView(
+            slivers: [
+              // ── App bar with provider header ───────────────────
+              SliverAppBar(
+                backgroundColor: const Color(0xFF1A1A2E),
+                foregroundColor: Colors.white,
+                expandedHeight: 180,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    color: const Color(0xFF1A1A2E),
+                    padding: const EdgeInsets.fromLTRB(20, 80, 20, 20),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryOrange,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Center(
+                            child: Text(
+                              initials,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 26,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      businessName,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  if (isVerified)
+                                    const Icon(Icons.verified_rounded,
+                                        color: Colors.lightBlueAccent,
+                                        size: 18),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                category,
+                                style: const TextStyle(
+                                    color: Colors.white60,
+                                    fontSize: 13),
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  const Icon(Icons.star_rounded,
+                                      color: AppTheme.starYellow,
+                                      size: 16),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${rating.toStringAsFixed(1)} ($totalReviews reviews)',
+                                    style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 13),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
+              ),
+
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── About ──────────────────────────────────
+                      if (description.isNotEmpty) ...[
+                        const Text(
+                          'About',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.darkText,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          description,
+                          style: const TextStyle(
+                              fontSize: 13,
+                              color: AppTheme.greyText,
+                              height: 1.5),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+
+                      // ── Trust badge ────────────────────────────
+                      if (isVerified)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          margin: const EdgeInsets.only(bottom: 20),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F5E9),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                                color: Colors.green.shade200),
+                          ),
+                          child: Row(
+                            mainAxisAlignment:
+                                MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.verified_user_outlined,
+                                  color: Colors.green.shade700,
+                                  size: 18),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Identity verified  ·  Approved by Sewa Mitra',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.green.shade800,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      // ── Services ───────────────────────────────
+                      const Text(
+                        'Available Services',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.darkText,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Tap a service to select it for booking',
+                        style: TextStyle(
+                            fontSize: 12, color: AppTheme.greyText),
+                      ),
+                      const SizedBox(height: 14),
+
+                      StreamBuilder<List<Map<String, dynamic>>>(
+                        stream: _servicesStream,
+                        builder: (context, snap) {
+                          if (snap.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator(
+                                    color: AppTheme.primaryOrange));
+                          }
+
+                          if (snap.hasError) {
+                            return Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade50,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                    color: Colors.red.shade200),
+                              ),
+                              child: Text(
+                                'Error loading services:\n${snap.error}',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.red.shade700),
+                              ),
+                            );
+                          }
+
+                          final services = snap.data ?? [];
+
+                          if (services.isEmpty) {
+                            return Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: AppTheme.white,
+                                borderRadius:
+                                    BorderRadius.circular(14),
+                              ),
+                              child: const Text(
+                                'This provider hasn\'t published any services yet.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: AppTheme.greyText,
+                                    fontSize: 13),
+                              ),
+                            );
+                          }
+
+                          return Column(
+                            children: services.map((svc) {
+                              final isSelected =
+                                  _selectedServiceId == svc['id'];
+                              return GestureDetector(
+                                onTap: () => setState(() {
+                                  _selectedServiceId = svc['id'];
+                                  _selectedServiceName =
+                                      svc['name'] as String?;
+                                  _selectedServicePrice =
+                                      (svc['price'] as num?)
+                                          ?.toDouble();
+                                }),
+                                child: AnimatedContainer(
+                                  duration:
+                                      const Duration(milliseconds: 200),
+                                  margin: const EdgeInsets.only(
+                                      bottom: 12),
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? AppTheme.lightOrange
+                                        : AppTheme.white,
+                                    borderRadius:
+                                        BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? AppTheme.primaryOrange
+                                          : AppTheme.lightGrey,
+                                      width: isSelected ? 2 : 1,
+                                    ),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                          color: AppTheme.cardShadow,
+                                          blurRadius: 6,
+                                          offset: Offset(0, 2)),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              svc['name'] as String? ??
+                                                  '',
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight:
+                                                    FontWeight.w700,
+                                                color: AppTheme.darkText,
+                                              ),
+                                            ),
+                                            if ((svc['description']
+                                                        as String? ??
+                                                    '')
+                                                .isNotEmpty) ...[
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                svc['description']
+                                                    as String,
+                                                style: const TextStyle(
+                                                    fontSize: 12,
+                                                    color:
+                                                        AppTheme.greyText),
+                                              ),
+                                            ],
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  'Rs. ${(svc['price'] as num).toStringAsFixed(0)}',
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight:
+                                                        FontWeight.w700,
+                                                    color: AppTheme
+                                                        .primaryOrange,
+                                                  ),
+                                                ),
+                                                if ((svc['duration']
+                                                            as String? ??
+                                                        '')
+                                                    .isNotEmpty) ...[
+                                                  const SizedBox(
+                                                      width: 10),
+                                                  const Icon(
+                                                      Icons
+                                                          .timer_outlined,
+                                                      size: 13,
+                                                      color: AppTheme
+                                                          .greyText),
+                                                  const SizedBox(
+                                                      width: 3),
+                                                  Text(
+                                                    svc['duration']
+                                                        as String,
+                                                    style: const TextStyle(
+                                                        fontSize: 12,
+                                                        color: AppTheme
+                                                            .greyText),
+                                                  ),
+                                                ],
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      if (isSelected)
+                                        Container(
+                                          width: 28,
+                                          height: 28,
+                                          decoration: const BoxDecoration(
+                                            color: AppTheme.primaryOrange,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                              Icons.check_rounded,
+                                              color: Colors.white,
+                                              size: 16),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        },
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // ── Reviews ────────────────────────────────
+                      const Text(
+                        'Recent Reviews',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.darkText,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+
+                      StreamBuilder<List<Map<String, dynamic>>>(
+                        stream: _reviewsStream,
+                        builder: (context, snap) {
+                          final reviews = snap.data ?? [];
+                          if (reviews.isEmpty) {
+                            return const Text(
+                              'No reviews yet. Be the first to book!',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppTheme.greyText),
+                            );
+                          }
+                          return Column(
+                            children: reviews
+                                .map((r) => _reviewCard(r))
+                                .toList(),
+                          );
+                        },
+                      ),
+
+                      const SizedBox(height: 100),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-}
 
-class _PricingCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
+          // ── Book button ──────────────────────────────────────────
+          bottomNavigationBar: Container(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+            decoration: BoxDecoration(
+              color: AppTheme.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 12,
+                  offset: const Offset(0, -4),
+                ),
+              ],
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'Starting price',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
+                if (_selectedServiceName != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _selectedServiceName!,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.darkText,
+                              fontSize: 13,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          'Rs. ${_selectedServicePrice?.toStringAsFixed(0) ?? ''}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.primaryOrange,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Rs. 500',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFE07B00),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Final price quoted after inspection',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey[500],
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton.icon(
+                    onPressed: _selectedServiceId == null
+                        ? null
+                        : () {
+                            context.push(
+                              '/book/$_providerId',
+                              extra: {
+                                'serviceId': _selectedServiceId,
+                                'serviceName': _selectedServiceName,
+                                'price': _selectedServicePrice,
+                                'providerId': _providerId,
+                                'providerName': businessName,
+                              },
+                            );
+                          },
+                    icon: const Icon(Icons.calendar_month_outlined,
+                        color: Colors.white),
+                    label: Text(
+                      _selectedServiceId == null
+                          ? 'Select a Service to Book'
+                          : 'Book Now',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _selectedServiceId == null
+                          ? AppTheme.greyText
+                          : AppTheme.primaryOrange,
+                      disabledBackgroundColor: AppTheme.lightGrey,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          Container(
-            width: 1,
-            height: 60,
-            color: Colors.grey[200],
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Average job cost',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Rs. 1200',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1A1A2E),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Based on 120 jobs',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey[500],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
-}
 
-class _TrustBadge extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
+  Widget _reviewCard(Map<String, dynamic> r) {
+    final rating = (r['rating'] as num?)?.toInt() ?? 0;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF4CAF50).withOpacity(0.3)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.verified_user_outlined,
-            color: Color(0xFF2E7D32),
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            'Identity verified  -  License checked  -  Insured',
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.green[800],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ReviewCard extends StatelessWidget {
-  final ReviewModel review;
-
-  const _ReviewCard({required this.review});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
+        color: AppTheme.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
+              color: AppTheme.cardShadow,
+              blurRadius: 6,
+              offset: Offset(0, 2)),
         ],
       ),
       child: Column(
@@ -331,20 +614,22 @@ class _ReviewCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                review.name,
+                r['customerName'] as String? ?? 'Customer',
                 style: const TextStyle(
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A1A2E),
+                  color: AppTheme.darkText,
                 ),
               ),
               Row(
                 children: List.generate(
                   5,
                   (i) => Icon(
-                    Icons.star_border,
-                    color: Colors.orange[300],
-                    size: 16,
+                    i < rating
+                        ? Icons.star_rounded
+                        : Icons.star_outline_rounded,
+                    color: AppTheme.starYellow,
+                    size: 15,
                   ),
                 ),
               ),
@@ -352,49 +637,11 @@ class _ReviewCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            review.comment,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[600],
-              height: 1.4,
-            ),
+            r['comment'] as String? ?? '',
+            style: const TextStyle(
+                fontSize: 13, color: AppTheme.greyText, height: 1.4),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _BookingButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-      color: const Color(0xFFF5F5F5),
-      child: SizedBox(
-        width: double.infinity,
-        height: 54,
-        child: ElevatedButton.icon(
-          onPressed: () {
-            context.push('/book/1');
-          },
-          icon: const Icon(Icons.calendar_month_outlined, color: Colors.white),
-          label: const Text(
-            'Book this service',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFE07B00),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
-            ),
-            elevation: 2,
-          ),
-        ),
       ),
     );
   }

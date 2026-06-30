@@ -2,19 +2,21 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/firebase_service.dart';
 import '../../services/payment_service.dart';
 import '../../shared/models/user_model.dart';
 import '../../shared/models/backend_models.dart';
+import '../../viewmodels/user_viewmodel.dart';
 import '../provider/join_provider_screen.dart';
 import '../provider/earning_screen.dart';
 import '../wallet/transaction_screen.dart';
 import '../admin/user_management_screen.dart';
 import '../provider/provider_management_screen.dart';
-import '../profile/settings_screen.dart';
-
+import 'settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -114,6 +116,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userVM = context.watch<UserViewModel>();
+
     return Scaffold(
       backgroundColor: AppTheme.bgColor,
       body: SafeArea(
@@ -123,7 +127,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
+                    // Mode Switcher Card
+                    if (userVM.isProvider && _role != 'admin')
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: userVM.activeMode == 'provider' ? const Color(0xFF1E293B) : Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              userVM.activeMode == 'provider' ? Icons.work_rounded : Icons.person_rounded,
+                              color: userVM.activeMode == 'provider' ? Colors.white : AppTheme.primaryOrange,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    userVM.activeMode == 'provider' ? 'Switch to Customer Mode' : 'Switch to Provider Mode',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: userVM.activeMode == 'provider' ? Colors.white : AppTheme.darkText,
+                                    ),
+                                  ),
+                                  Text(
+                                    userVM.activeMode == 'provider' ? 'Browse & book services' : 'Manage your business',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: userVM.activeMode == 'provider' ? Colors.white70 : AppTheme.greyText,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch.adaptive(
+                              value: userVM.activeMode == 'provider',
+                              activeColor: AppTheme.primaryOrange,
+                              onChanged: (v) async {
+                                final targetMode = userVM.activeMode == 'provider' ? 'customer' : 'provider';
+                                await userVM.switchMode();
+                                if (mounted) {
+                                  context.go(targetMode == 'provider' ? '/provider/dashboard' : '/home');
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+
                     // Avatar
                     Container(
                       width: 90,
@@ -158,7 +217,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     // Customer & Provider only
                     if (_role != 'admin') ...[
-                      if (_role == 'customer')
+                      if (!userVM.isProvider)
                         _ProfileTile(
                           icon: Icons.work_rounded,
                           label: 'Join as Provider',
@@ -174,11 +233,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         label: 'Transactions',
                         onTap: () => _navigateTo(const TransactionScreen()),
                       ),
-                      if (_role == 'provider')
+                      if (userVM.isProvider)
                         _ProfileTile(
                           icon: Icons.analytics_outlined,
                           label: 'My Earnings',
-                          onTap: () => _navigateTo(const EarningScreen()),
+                          onTap: () => context.push('/provider/earnings'),
                         ),
                     ],
 
@@ -240,10 +299,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-//  SHARED WIDGETS
-// ══════════════════════════════════════════════════════════════════════════════
-
 class _ProfileTile extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -290,10 +345,6 @@ AppBar _buildAppBar(String title) => AppBar(
               fontWeight: FontWeight.w700, fontSize: 18, color: AppTheme.darkText)),
       iconTheme: const IconThemeData(color: AppTheme.darkText),
     );
-
-// ══════════════════════════════════════════════════════════════════════════════
-//  EDIT PROFILE SCREEN — fully connected to Firestore
-// ══════════════════════════════════════════════════════════════════════════════
 
 class EditProfileScreen extends StatefulWidget {
   final String name;
@@ -379,13 +430,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       String? newPhotoBase64 = _currentPhotoBase64;
       String? newPhotoUrl = _currentPhotoUrl;
 
-      // Upload photo as Base64 if a new image was picked
       if (_imageFile != null) {
         newPhotoBase64 = await _firebaseService.uploadProfilePhoto(uid, _imageFile!);
-        newPhotoUrl = null; // clear old URL, base64 takes priority
+        newPhotoUrl = null;
       }
 
-      // Update Firestore (fullName, phone, photo)
       await _firebaseService.updateUserFields(uid, {
         'fullName': _nameCtrl.text.trim(),
         'phone': _phoneCtrl.text.trim(),
@@ -393,7 +442,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         if (newPhotoUrl != null) 'photoUrl': newPhotoUrl,
       });
 
-      // Also update Firebase Auth display name
       await AuthService.updateProfile(fullName: _nameCtrl.text.trim());
 
       if (mounted) {
@@ -533,10 +581,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-//  MY ADDRESSES SCREEN — Firestore backed with real-time stream
-// ══════════════════════════════════════════════════════════════════════════════
-
 class MyAddressesScreen extends StatefulWidget {
   const MyAddressesScreen({super.key});
 
@@ -567,7 +611,6 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Label picker
               Wrap(
                 spacing: 8,
                 children: labels.map((l) {
@@ -710,10 +753,6 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
     );
   }
 }
-
-// ══════════════════════════════════════════════════════════════════════════════
-//  PAYMENT METHODS SCREEN — real saved cards from Firestore
-// ══════════════════════════════════════════════════════════════════════════════
 
 class PaymentMethodsScreen extends StatefulWidget {
   const PaymentMethodsScreen({super.key});
@@ -945,7 +984,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
 class HelpSupportScreen extends StatelessWidget {
   const HelpSupportScreen({super.key});
 
